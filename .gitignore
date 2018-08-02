@@ -1,0 +1,6 @@
+# IDEs and editors
+/.idea
+/.vscode
+
+# compiled output
+/dist
