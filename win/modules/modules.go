@@ -43,3 +43,18 @@ func Get(handle windows.Handle) ([]Module, error) {
 
 	return modules, nil
 }
+
+func Find(handle windows.Handle, name string)(*Module, error){
+	modules, err := Get(handle)
+	if err != nil {
+		return nil, err
+	}
+	
+	for _, module := range modules {
+		if module.Name == name {
+			return &module, nil
+		}
+	}
+
+	return nil, nil
+}
