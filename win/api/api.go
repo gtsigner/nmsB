@@ -4,11 +4,16 @@ import (
 	"golang.org/x/sys/windows"
 	"syscall"
 	"unsafe"
+	"log"
 )
 
 var (
 	// load dlls
-	modpsapi = windows.NewLazySystemDLL("psapi.dll")
+	modpsapi    = windows.NewLazySystemDLL("psapi.dll")
+	modkernel32 = windows.NewLazySystemDLL("kernel32.dll")
+
+	//load func [kernel32.dll]
+	procReadProcessMemory = modkernel32.NewProc("ReadProcessMemory")
 
 	//load func [psapi.dll]
 	procGetModuleBaseName  = modpsapi.NewProc("GetModuleBaseNameW")
@@ -84,4 +89,31 @@ func GetModuleBaseName(process windows.Handle, module windows.Handle, moduleName
 	}
 
 	return int(r1), nil
+}
+
+func ReadProcessMemory(handle windows.Handle, address uintptr, size int32) ([]byte, error) {
+	data := make([]byte, size)
+	nbr := uintptr(0)
+
+	log.Printf("%x", address)
+
+	r1, _, e1 := syscall.Syscall6(procReadProcessMemory.Addr(),
+		5,
+		uintptr(handle),
+		uintptr(address),
+		uintptr(unsafe.Pointer(&data[0])),
+		uintptr(size),
+		uintptr(unsafe.Pointer(&nbr)),
+		0)
+
+	log.Printf("r1 %d, nbr: %d", r1,nbr)
+
+	if r1 == 0 {
+		if e1 != 0 {
+			return nil, errnoErr(e1)
+		}
+		return nil, syscall.EINVAL
+	}
+
+	return data, nil
 }

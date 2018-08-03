@@ -55,6 +55,5 @@ build: dependencies
 dependencies:
 	$(GOGET) gopkg.in/yaml.v2
 	$(GOGET) golang.org/x/sys/windows
-
 clean:
 	@-rm -r $(BIN_DIR)
