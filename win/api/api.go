@@ -2,9 +2,9 @@ package api
 
 import (
 	"golang.org/x/sys/windows"
+	"log"
 	"syscall"
 	"unsafe"
-	"log"
 )
 
 var (
@@ -106,7 +106,7 @@ func ReadProcessMemory(handle windows.Handle, address uintptr, size int32) ([]by
 		uintptr(unsafe.Pointer(&nbr)),
 		0)
 
-	log.Printf("r1 %d, nbr: %d", r1,nbr)
+	log.Printf("r1 %d, nbr: %d", r1, nbr)
 
 	if r1 == 0 {
 		if e1 != 0 {

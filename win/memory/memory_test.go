@@ -1,11 +1,11 @@
 package memory
 
 import (
+	"../modules"
 	"../process"
 	"log"
 	"testing"
 	"unsafe"
-	"../modules"
 )
 
 func TestReadProcessMemoryInt32(t *testing.T) {
@@ -48,7 +48,7 @@ func TestReadProcessMemoryInt32(t *testing.T) {
 		t.Errorf(err.Error())
 		return
 	}
-	
+
 	log.Println(value, v)
 
 }

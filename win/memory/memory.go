@@ -5,8 +5,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"golang.org/x/sys/windows"
-	"unsafe"
 	"log"
+	"unsafe"
 )
 
 func ReadProcessMemoryInt32(handle windows.Handle, address uintptr) (int, error) {
@@ -28,7 +28,7 @@ func ReadProcessMemoryInt32(handle windows.Handle, address uintptr) (int, error)
 		return 0, err
 	}
 
-	log.Printf("%v\n",i)
+	log.Printf("%v\n", i)
 
 	return int(i), nil
 }

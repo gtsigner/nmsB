@@ -1,10 +1,9 @@
 package main
 
 import (
-	"./win/modules"
-	"./win/process"
+	"./cmd"
+	"./cmd/execute"
 	"log"
-	"unsafe"
 )
 
 var (
@@ -13,30 +12,21 @@ var (
 )
 
 func main() {
-	log.Println(VERSION, RELEASE)
-
-	p, err := process.FindProcess("test.exe")
+	// parse the CMD
+	args, err := cmd.Parse()
 	if err != nil {
 		log.Panicln(err)
 	}
 
-	handle, err := process.Open(p.Id)
+	// check if help given
+	if *args.Help {
+		cmd.Help()
+		return
+	}
+
+	err = execute.Execute(args)
 	if err != nil {
 		log.Panicln(err)
 	}
-
-	module, err := modules.Find(handle, "test.exe")
-	if err != nil {
-		log.Panicln(err)
-	}
-
-	log.Println(module.Name)
-
-	log.Printf("module: 0x%x\n", module.Handle)
-
-	p1 := (*unsafe.Pointer)(unsafe.Pointer(uintptr(module.Handle) + uintptr(0x5)))
-	log.Printf("p1: %x\n", *p1)
-
-	// +0015CEB0 0x18 0x68 0x40 0xF0
 
 }
