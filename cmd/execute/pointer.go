@@ -3,9 +3,8 @@ package execute
 import (
 	"log"
 	"time"
-	"bytes"
-    "encoding/binary"
-	"encoding/hex"
+	"unsafe"
+	"strconv"
 	"../../win/memory"
 	"../../win/process"
 )
@@ -23,8 +22,10 @@ func Pointer(processId *int, address *string) error {
 func pointerLoop() error {
 	value := int32(0)
 	for {
-		log.Printf("Pointer: 0x%X , Value: %d", &value, value)
-		time.Sleep(time.Second * 1)
+		value += 1
+		pointer := uintptr(unsafe.Pointer(&value))
+		log.Printf("Pointer: 0x%X , Value: %d", pointer, value)
+		time.Sleep(time.Second * 10)
 	}
 }
 
@@ -48,20 +49,15 @@ func readAddress(processId *int, address *string) error {
 		return err
 	}
 
-	log.Printf("Value: %d", handle, pointer, value)
+	log.Printf("Value: %d, Handle: %d, Value: %d", handle, pointer, value)
 
 	return nil
 }
 
 func parseAddress(s string) (uintptr, error) {
-    data, err := hex.DecodeString(s)
-    if err != nil {
-        return uintptr(0), err
-    }
-
-	var address uint32
-    buf := bytes.NewReader(data)
-    err = binary.Read(buf, binary.BigEndian, &address)
-
-    return uintptr(address), err
+	address, err := strconv.ParseUint(s, 16, 64)
+	if err != nil {
+		return uintptr(0), err
+	}
+    return uintptr(address), nil
 }

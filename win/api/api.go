@@ -2,7 +2,6 @@ package api
 
 import (
 	"golang.org/x/sys/windows"
-	"log"
 	"syscall"
 	"unsafe"
 )
@@ -91,12 +90,10 @@ func GetModuleBaseName(process windows.Handle, module windows.Handle, moduleName
 	return int(r1), nil
 }
 
-func ReadProcessMemory(handle windows.Handle, address uintptr, size int32) ([]byte, error) {
-	data := make([]byte, size)
+func ReadProcessMemory(handle windows.Handle, address uintptr, size uint64) ([]byte, error) {
 	nbr := uintptr(0)
-
-	log.Printf("%x", address)
-
+	data := make([]byte, size)
+	
 	r1, _, e1 := syscall.Syscall6(procReadProcessMemory.Addr(),
 		5,
 		uintptr(handle),
@@ -105,8 +102,6 @@ func ReadProcessMemory(handle windows.Handle, address uintptr, size int32) ([]by
 		uintptr(size),
 		uintptr(unsafe.Pointer(&nbr)),
 		0)
-
-	log.Printf("r1 %d, nbr: %d", r1, nbr)
 
 	if r1 == 0 {
 		if e1 != 0 {

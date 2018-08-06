@@ -1,54 +1,24 @@
 package memory
 
 import (
-	"../modules"
 	"../process"
-	"log"
-	"testing"
-	"unsafe"
+	"testing"	
+	"os"
+	"golang.org/x/sys/windows"
 )
 
-func TestReadProcessMemoryInt32(t *testing.T) {
-	value := int32(42)
-
-	p, err := process.FindProcess("go.exe")
-
+func OpenProcess(t *testing.T)(windows.Handle,bool) {
+	pid := uint(os.Getpid())
+	handle, err := process.Open(pid)
 	if err != nil {
 		t.Errorf(err.Error())
-		return
-	}
-
-	if p == nil {
-		t.Fatal("no process with name go.exe")
-		return
-	}
-
-	handle, err := process.Open(p.Id)
-
-	if err != nil {
-		t.Errorf(err.Error())
-		return
+		return 0, false
 	}
 
 	if handle == 0 {
-		t.Fatal("fail to open process go.exe")
-		return
+		t.Fatalf("fail to open process with pid %d\n", pid)
+		return 0, false
 	}
 
-	module, err := modules.Find(handle, "go.exe")
-	if err != nil {
-		t.Errorf(err.Error())
-		return
-	}
-
-	log.Printf("%d, value: %x, module: %x\n", value, &value, module.Handle)
-
-	v, err := ReadProcessMemoryInt32(handle, uintptr(unsafe.Pointer(&value)))
-	if err != nil {
-		t.Errorf(err.Error())
-		return
-	}
-
-	log.Println(value, v)
-
+	return handle, true
 }
