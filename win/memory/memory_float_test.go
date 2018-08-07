@@ -5,7 +5,7 @@ import (
 	"unsafe"
 )
 
-func TestReadProcessMemoryFloat32(t *testing.T) {	
+func TestReadProcessMemoryFloat32(t *testing.T) {
 	handle, ok := OpenProcess(t)
 	if !ok {
 		return
@@ -28,7 +28,7 @@ func TestReadProcessMemoryFloat32(t *testing.T) {
 
 }
 
-func TestReadProcessMemoryFloat64(t *testing.T) {	
+func TestReadProcessMemoryFloat64(t *testing.T) {
 	handle, ok := OpenProcess(t)
 	if !ok {
 		return

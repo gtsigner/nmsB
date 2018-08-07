@@ -2,12 +2,12 @@ package memory
 
 import (
 	"../process"
-	"testing"	
-	"os"
 	"golang.org/x/sys/windows"
+	"os"
+	"testing"
 )
 
-func OpenProcess(t *testing.T)(windows.Handle,bool) {
+func OpenProcess(t *testing.T) (windows.Handle, bool) {
 	pid := uint(os.Getpid())
 	handle, err := process.Open(pid)
 	if err != nil {

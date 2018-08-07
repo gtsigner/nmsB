@@ -100,10 +100,19 @@ func ReadProcessMemoryByte(handle windows.Handle, address uintptr) (byte, error)
 	return f, nil
 }
 
-func ReadProcessMemoryBytes(handle windows.Handle, address uintptr, size uint64)([]byte, error) {
+func ReadProcessMemoryBytes(handle windows.Handle, address uintptr, size uint64) ([]byte, error) {
 	data, err := api.ReadProcessMemory(handle, address, size)
 	if err != nil {
 		return nil, err
 	}
 	return data, nil
+}
+
+func ReadProcessMemoryString(handle windows.Handle, address uintptr, size uint64) (string, error) {
+	stringLength := size + 1
+	data, err := api.ReadProcessMemory(handle, address, stringLength)
+	if err != nil {
+		return "", err
+	}
+	return string(data[:stringLength]), nil
 }

@@ -75,3 +75,8 @@ func Open(id uint) (windows.Handle, error) {
 	handle, err := windows.OpenProcess(api.PROCESS_ALL_ACCESS, false, uint32(id))
 	return handle, err
 }
+
+func Close(handle windows.Handle) error {
+	err := windows.CloseHandle(handle)
+	return err
+}

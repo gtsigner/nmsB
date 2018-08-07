@@ -93,7 +93,7 @@ func GetModuleBaseName(process windows.Handle, module windows.Handle, moduleName
 func ReadProcessMemory(handle windows.Handle, address uintptr, size uint64) ([]byte, error) {
 	nbr := uintptr(0)
 	data := make([]byte, size)
-	
+
 	r1, _, e1 := syscall.Syscall6(procReadProcessMemory.Addr(),
 		5,
 		uintptr(handle),

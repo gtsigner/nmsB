@@ -2,13 +2,13 @@ package memory
 
 import (
 	"bytes"
-	"testing"
-	"unsafe"
 	"math/rand"
+	"testing"
 	"time"
+	"unsafe"
 )
 
-func TestReadProcessMemoryByte(t *testing.T) {	
+func TestReadProcessMemoryByte(t *testing.T) {
 	handle, ok := OpenProcess(t)
 	if !ok {
 		return
@@ -31,7 +31,7 @@ func TestReadProcessMemoryByte(t *testing.T) {
 
 }
 
-func TestReadProcessMemoryBytes(t *testing.T) {	
+func TestReadProcessMemoryBytes(t *testing.T) {
 	handle, ok := OpenProcess(t)
 	if !ok {
 		return

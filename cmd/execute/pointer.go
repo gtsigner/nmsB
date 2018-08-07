@@ -1,12 +1,13 @@
 package execute
 
 import (
-	"log"
-	"time"
-	"unsafe"
-	"strconv"
 	"../../win/memory"
 	"../../win/process"
+	"log"
+	"os"
+	"strconv"
+	"time"
+	"unsafe"
 )
 
 func Pointer(processId *int, address *string) error {
@@ -20,11 +21,12 @@ func Pointer(processId *int, address *string) error {
 }
 
 func pointerLoop() error {
+	pid := uint(os.Getpid())
 	value := int32(0)
 	for {
 		value += 1
 		pointer := uintptr(unsafe.Pointer(&value))
-		log.Printf("Pointer: 0x%X , Value: %d", pointer, value)
+		log.Printf("PId: %d, Pointer: 0x%X , Value: %d", pid, pointer, value)
 		time.Sleep(time.Second * 10)
 	}
 }
@@ -43,7 +45,7 @@ func readAddress(processId *int, address *string) error {
 	}
 
 	log.Printf("Handler: %d, Pointer 0x%X", handle, pointer)
-	
+
 	value, err := memory.ReadProcessMemoryInt32(handle, pointer)
 	if err != nil {
 		return err
@@ -59,5 +61,5 @@ func parseAddress(s string) (uintptr, error) {
 	if err != nil {
 		return uintptr(0), err
 	}
-    return uintptr(address), nil
+	return uintptr(address), nil
 }

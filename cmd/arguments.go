@@ -5,4 +5,5 @@ type Arguments struct {
 	Pointer   *bool
 	ProcessId *int
 	Address   *string
+	Reader    *bool
 }
