@@ -7,7 +7,7 @@ import (
 
 func Reader() error {
 
-	pid := uint(18756)
+	pid := uint(24732)
 
 	reader := memory.NewMemoryReader()
 	err := reader.Open(pid)
@@ -44,9 +44,12 @@ func Reader() error {
 	value5, _ := reader.ReadPtr(bb5)
 	log.Printf("bb5: %X, value5: %X\n", bb5, value5)
 
-	v,_ := reader.ReadInt32(value5)
-	
-	log.Println(v)
+	v, _ := reader.ReadInt32(value5)
+
+	ptr, _ := reader.PointerAt("nmsB-windows-amd64.exe", uintptr(0x00177328), uintptr(0x90), uintptr(0x40), uintptr(0x70), uintptr(0x88))
+	v2, _ := reader.ReadInt32(ptr)
+
+	log.Println(v, v2)
 
 	return nil
 }
