@@ -11,6 +11,9 @@ func Execute(args *cmd.Arguments) error {
 	} else if *args.Reader {
 		err := Reader()
 		return err
+	} else if *args.Server {
+		err := Server()
+		return err
 	}
 
 	return nil

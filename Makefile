@@ -55,5 +55,7 @@ build: dependencies
 dependencies:
 	$(GOGET) gopkg.in/yaml.v2
 	$(GOGET) golang.org/x/sys/windows
+	$(GOGET) github.com/gorilla/websocket
+
 clean:
 	@-rm -r $(BIN_DIR)

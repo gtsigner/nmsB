@@ -6,4 +6,5 @@ type Arguments struct {
 	ProcessId *int
 	Address   *string
 	Reader    *bool
+	Server    *bool
 }
