@@ -1,10 +1,10 @@
 package websocket
 
 import (
+	"sync"
+
 	"../../utils"
 	ws "github.com/gorilla/websocket"
-	"log"
-	"sync"
 )
 
 type WebSocketManager struct {
@@ -36,8 +36,6 @@ func (webSocketManager *WebSocketManager) Open(conn *ws.Conn) error {
 		return err
 	}
 
-	log.Printf("websocket [ %s ] established to remote [ %s ]\n", id, conn.RemoteAddr())
-
 	// create a new web-socket
 	webSocket := NewWebSocket(id, conn)
 
@@ -49,36 +47,21 @@ func (webSocketManager *WebSocketManager) Open(conn *ws.Conn) error {
 	webSocketManager.lock.Unlock()
 
 	// start the forwarder
-	go func() {
-		log.Println("forwarder3")
-		webSocketManager.forwarder(webSocket)
-	}()
+	go webSocketManager.forwarder(webSocket)
 
 	return nil
 }
 
 func (webSocketManager *WebSocketManager) forwarder(webSocket *WebSocket) {
-	
-	// close the websocket on end
-	defer webSocketManager.close(webSocket)
-
-	log.Println("forwarder2")
 	// notify about open
 	webSocketManager.OnOpen <- OpenEvent{
 		WebSocket: webSocket,
 	}
 
-	log.Println("forwarder")
-
 	for {
 		select {
-		case closeError := <-webSocket.OnClose:
-			log.Printf("close event on websocket [ %s ] to remote [ %s ] with [ %d, %s ]\n",
-				webSocket.Id,
-				webSocket.RemoteAddr(),
-				closeError.Code,
-				closeError.Text,
-			)
+		case <-webSocket.OnClose:
+			webSocketManager.close(webSocket)
 			return
 		case err := <-webSocket.OnError:
 			webSocketManager.OnError <- ErrorEvent{
@@ -101,10 +84,6 @@ func (webSocketManager *WebSocketManager) forwarder(webSocket *WebSocket) {
 }
 
 func (webSocketManager *WebSocketManager) close(webSocket *WebSocket) {
-	log.Printf("closing websocket [ %s ] to remote [ %s ]\n", webSocket.Id, webSocket.RemoteAddr())
-	// close the underlying connection
-	webSocket.Close()
-
 	// notify about close
 	webSocketManager.OnClose <- CloseEvent{
 		WebSocket: webSocket,
@@ -116,4 +95,16 @@ func (webSocketManager *WebSocketManager) close(webSocket *WebSocket) {
 	delete(webSocketManager.webSockets, webSocket.Id)
 	// release the lock
 	webSocketManager.lock.Unlock()
+}
+
+func (webSocketManager *WebSocketManager) Broadcast(message string) {
+	// aquire read lock
+	webSocketManager.lock.RLock()
+	// unlock read lock on end
+	defer webSocketManager.lock.RUnlock()
+
+	// send message to all websockets
+	for _, webSocket := range webSocketManager.webSockets {
+		webSocket.Write(message)
+	}
 }
