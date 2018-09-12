@@ -1,9 +1,6 @@
 package api
 
-type LUID struct {
-	LowPart  uint32
-	HighPart int32
-}
+type LUID = uint64
 
 type LUID_AND_ATTRIBUTES struct {
 	Luid       LUID

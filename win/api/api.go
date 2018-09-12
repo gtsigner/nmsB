@@ -1,6 +1,8 @@
 package api
 
 import (
+	"bytes"
+	"encoding/binary"
 	"syscall"
 	"unsafe"
 
@@ -160,4 +162,44 @@ func AdjustTokenPrivileges(token windows.Token, disableAllPrivileges bool, newst
 
 	}
 	return uint32(r0), nil
+}
+
+func GetTokenPrivileges(token windows.Token) ([]LUID_AND_ATTRIBUTES, error) {
+
+	var n uint32
+	err := windows.GetTokenInformation(token, windows.TokenPrivileges, nil, uint32(0), &n)
+	if err != nil {
+		if err != windows.ERROR_INSUFFICIENT_BUFFER {
+			return nil, err
+		}
+	}
+
+	buffer := bytes.NewBuffer(make([]byte, n))
+	err = windows.GetTokenInformation(token, windows.TokenPrivileges, &buffer.Bytes()[0], uint32(buffer.Len()), &n)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var privilegeCount uint32
+	err = binary.Read(buffer, binary.LittleEndian, &privilegeCount)
+	if err != nil {
+		return nil, err
+	}
+
+	tokenPrivileges := make([]LUID_AND_ATTRIBUTES, privilegeCount)
+
+	for i := 0; i < int(privilegeCount); i++ {
+		err = binary.Read(buffer, binary.LittleEndian, &tokenPrivileges[i].Luid)
+		if err != nil {
+			return nil, err
+		}
+
+		err = binary.Read(buffer, binary.LittleEndian, &tokenPrivileges[i].Attributes)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return tokenPrivileges, nil
 }
