@@ -9,5 +9,5 @@ type LUID_AND_ATTRIBUTES struct {
 
 type TOKEN_PRIVILEGES struct {
 	PrivilegeCount uint32
-	Privileges     [1]LUID_AND_ATTRIBUTES
+	Privileges     []LUID_AND_ATTRIBUTES
 }

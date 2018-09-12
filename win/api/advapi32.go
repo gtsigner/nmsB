@@ -1,0 +1,78 @@
+package api
+
+import (
+	"syscall"
+	"unsafe"
+
+	"golang.org/x/sys/windows"
+)
+
+var (
+	// load dll [advapi32.dll]
+	modadvapi32 = windows.NewLazySystemDLL("advapi32.dll")
+
+	//load func [advapi32.dll]
+	procLookupPrivilegeName   = modadvapi32.NewProc("LookupPrivilegeNameW")
+	procLookupPrivilegeValue  = modadvapi32.NewProc("LookupPrivilegeValueW")
+	procAdjustTokenPrivileges = modadvapi32.NewProc("AdjustTokenPrivileges")
+)
+
+func LookupPrivilegeValue(systemname *uint16, name *uint16, luid *LUID) error {
+	r1, _, e1 := syscall.Syscall(procLookupPrivilegeValue.Addr(),
+		3,
+		uintptr(unsafe.Pointer(systemname)),
+		uintptr(unsafe.Pointer(name)),
+		uintptr(unsafe.Pointer(luid)))
+	if r1 == 0 {
+		if e1 != 0 {
+			return errnoErr(e1)
+		}
+		return syscall.EINVAL
+
+	}
+	return nil
+}
+
+func AdjustTokenPrivileges(token windows.Token, disableAllPrivileges bool, newstate *TOKEN_PRIVILEGES, buflen uint32, prevstate *TOKEN_PRIVILEGES, returnlen *uint32) (uint32, error) {
+	var _p0 uint32
+	if disableAllPrivileges {
+		_p0 = 1
+	} else {
+		_p0 = 0
+	}
+
+	r0, _, e1 := syscall.Syscall6(procAdjustTokenPrivileges.Addr(),
+		6,
+		uintptr(token),
+		uintptr(_p0),
+		uintptr(unsafe.Pointer(newstate)),
+		uintptr(buflen),
+		uintptr(unsafe.Pointer(prevstate)),
+		uintptr(unsafe.Pointer(returnlen)))
+
+	if r0 == 0 {
+		if e1 != 0 {
+			return 0, errnoErr(e1)
+		}
+		return 0, syscall.EINVAL
+
+	}
+	return uint32(r0), nil
+}
+
+func LookupPrivilegeName(systemName *uint16, luid *uint64, buffer *uint16, size *uint32) error {
+	r1, _, e1 := syscall.Syscall6(procLookupPrivilegeName.Addr(),
+		4,
+		uintptr(unsafe.Pointer(systemName)),
+		uintptr(unsafe.Pointer(luid)),
+		uintptr(unsafe.Pointer(buffer)),
+		uintptr(unsafe.Pointer(size)), 0, 0)
+	if r1 == 0 {
+		if e1 != 0 {
+			return error(e1)
+		} else {
+			return syscall.EINVAL
+		}
+	}
+	return nil
+}
