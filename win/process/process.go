@@ -1,10 +1,12 @@
 package process
 
 import (
-	"../api"
-	"golang.org/x/sys/windows"
+	"os"
 	"syscall"
 	"unsafe"
+
+	"../api"
+	"golang.org/x/sys/windows"
 )
 
 type WinProcess struct {
@@ -69,6 +71,12 @@ func FindProcess(name string) (*WinProcess, error) {
 		}
 	}
 	return nil, nil
+}
+
+func OpenCurrent() (windows.Handle, error) {
+	pid := os.Getpid()
+	handle, err := Open(uint(pid))
+	return handle, err
 }
 
 func Open(id uint) (windows.Handle, error) {

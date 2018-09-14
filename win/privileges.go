@@ -3,15 +3,19 @@ package win
 import (
 	"bytes"
 	"encoding/binary"
-	"log"
 	"syscall"
-	"unsafe"
 
 	"./api"
 	"golang.org/x/sys/windows"
 )
 
-func LookupPrivilegeName(systemName string, luid api.LUID) (string, error) {
+type Privilege struct {
+	Name       string
+	Luid       uint64
+	Attributes uint32
+}
+
+func LookupPrivilegeName(systemName string, luid uint64) (string, error) {
 	systemNamePtr, err := syscall.UTF16PtrFromString(systemName)
 	if err != nil {
 		return "", nil
@@ -27,33 +31,58 @@ func LookupPrivilegeName(systemName string, luid api.LUID) (string, error) {
 	return privilegeName, nil
 }
 
-func LookupPrivilegeValue(systemName string, name string) (*api.LUID, error) {
+func LookupPrivilegeValue(systemName string, name string) (uint64, error) {
 	systemNamePtr, err := syscall.UTF16PtrFromString(systemName)
 	if err != nil {
-		return nil, nil
+		return 0, nil
 	}
 
 	namePtr, err := syscall.UTF16PtrFromString(name)
 	if err != nil {
-		return nil, nil
+		return 0, nil
 	}
 
-	var luid api.LUID
+	var luid uint64
 	err = api.LookupPrivilegeValue(systemNamePtr, namePtr, &luid)
+	if err != nil {
+		return 0, err
+	}
+
+	return luid, err
+}
+
+func GetPrivilege(token windows.Token, name string) (*Privilege, error) {
+	privileges, err := GetPrivileges(token)
 	if err != nil {
 		return nil, err
 	}
 
-	return &luid, err
+	for _, privilege := range privileges {
+		if privilege.Name == name {
+			return &privilege, nil
+		}
+	}
+
+	return nil, nil
 }
 
-func GetCurrentProcessPrivileges() ([]string, error) {
+func GetCurrentProcessPrivilege(name string) (*Privilege, error) {
 	token, err := windows.OpenCurrentProcessToken()
 	if err != nil {
 		return nil, err
 	}
 
-	names, err := GetPrivileges(token)
+	privilege, err := GetPrivilege(token, name)
+	return privilege, err
+}
+
+func GetCurrentProcessPrivileges() ([]Privilege, error) {
+	token, err := windows.OpenCurrentProcessToken()
+	if err != nil {
+		return nil, err
+	}
+
+	privileges, err := GetPrivileges(token)
 	if err != nil {
 		return nil, err
 	}
@@ -63,10 +92,10 @@ func GetCurrentProcessPrivileges() ([]string, error) {
 		return nil, err
 	}
 
-	return names, err
+	return privileges, err
 }
 
-func GetPrivileges(token windows.Token) ([]string, error) {
+func GetPrivileges(token windows.Token) ([]Privilege, error) {
 	var n uint32
 	err := windows.GetTokenInformation(token, windows.TokenPrivileges, nil, uint32(0), &n)
 	if err != nil {
@@ -88,29 +117,34 @@ func GetPrivileges(token windows.Token) ([]string, error) {
 		return nil, err
 	}
 
-	names := make([]string, privilegeCount)
+	privileges := make([]Privilege, privilegeCount)
 
 	for i := 0; i < int(privilegeCount); i++ {
-		var luidAndAttr api.LUID_AND_ATTRIBUTES
-		err = binary.Read(buffer, binary.LittleEndian, &luidAndAttr.Luid)
+		var luid uint64
+		err = binary.Read(buffer, binary.LittleEndian, &luid)
 		if err != nil {
 			return nil, err
 		}
 
-		err = binary.Read(buffer, binary.LittleEndian, &luidAndAttr.Attributes)
+		var attributes uint32
+		err = binary.Read(buffer, binary.LittleEndian, &attributes)
 		if err != nil {
 			return nil, err
 		}
 
-		name, err := LookupPrivilegeName("", luidAndAttr.Luid)
+		name, err := LookupPrivilegeName("", luid)
 		if err != nil {
 			return nil, err
 		}
-		log.Println(name, luidAndAttr.Attributes)
-		names[i] = name
+
+		privileges[i] = Privilege{
+			Luid:       luid,
+			Name:       name,
+			Attributes: attributes,
+		}
 	}
 
-	return names, nil
+	return privileges, nil
 }
 
 func EnableDebugPrivilege() error {
@@ -145,13 +179,10 @@ func SetCurrentProcessPrivilege(enabled bool, privileges ...string) error {
 }
 
 func SetPrivilege(token windows.Token, enabled bool, privileges ...string) error {
-	length := len(privileges)
-	tokenPrivileges := api.TOKEN_PRIVILEGES{
-		PrivilegeCount: uint32(length),
-		Privileges:     make([]api.LUID_AND_ATTRIBUTES, length),
-	}
+	var buffer bytes.Buffer
+	binary.Write(&buffer, binary.LittleEndian, uint32(len(privileges)))
 
-	for index, privilege := range privileges {
+	for _, privilege := range privileges {
 		luid, err := LookupPrivilegeValue("", privilege)
 		if err != nil {
 			return err
@@ -162,21 +193,16 @@ func SetPrivilege(token windows.Token, enabled bool, privileges ...string) error
 			return err
 		}
 
-		// https://github.com/elastic/beats/blob/master/vendor/github.com/elastic/gosigar/sys/windows/privileges.go
-
-		log.Println(*luid)
-
-		tokenPrivileges.Privileges[index].Luid = *luid
+		binary.Write(&buffer, binary.LittleEndian, luid)
 
 		if enabled {
-			tokenPrivileges.Privileges[index].Attributes = api.SE_PRIVILEGE_ENABLED
+			binary.Write(&buffer, binary.LittleEndian, uint32(api.SE_PRIVILEGE_ENABLED))
 		} else {
-			tokenPrivileges.Privileges[index].Attributes = 0
+			binary.Write(&buffer, binary.LittleEndian, uint32(0))
 		}
 	}
 
-	size := uint32(unsafe.Sizeof(tokenPrivileges))
-	_, err := api.AdjustTokenPrivileges(token, false, &tokenPrivileges, size, nil, nil)
+	_, err := api.AdjustTokenPrivileges(token, false, &buffer.Bytes()[0], uint32(buffer.Len()), nil, nil)
 	if err != nil {
 		return err
 	}

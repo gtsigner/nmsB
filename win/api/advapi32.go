@@ -17,7 +17,7 @@ var (
 	procAdjustTokenPrivileges = modadvapi32.NewProc("AdjustTokenPrivileges")
 )
 
-func LookupPrivilegeValue(systemname *uint16, name *uint16, luid *LUID) error {
+func LookupPrivilegeValue(systemname *uint16, name *uint16, luid *uint64) error {
 	r1, _, e1 := syscall.Syscall(procLookupPrivilegeValue.Addr(),
 		3,
 		uintptr(unsafe.Pointer(systemname)),
@@ -33,9 +33,9 @@ func LookupPrivilegeValue(systemname *uint16, name *uint16, luid *LUID) error {
 	return nil
 }
 
-func AdjustTokenPrivileges(token windows.Token, disableAllPrivileges bool, newstate *TOKEN_PRIVILEGES, buflen uint32, prevstate *TOKEN_PRIVILEGES, returnlen *uint32) (uint32, error) {
+func AdjustTokenPrivileges(token windows.Token, releaseAll bool, input *byte, outputSize uint32, output *byte, requiredSize *uint32) (uint32, error) {
 	var _p0 uint32
-	if disableAllPrivileges {
+	if releaseAll {
 		_p0 = 1
 	} else {
 		_p0 = 0
@@ -45,10 +45,10 @@ func AdjustTokenPrivileges(token windows.Token, disableAllPrivileges bool, newst
 		6,
 		uintptr(token),
 		uintptr(_p0),
-		uintptr(unsafe.Pointer(newstate)),
-		uintptr(buflen),
-		uintptr(unsafe.Pointer(prevstate)),
-		uintptr(unsafe.Pointer(returnlen)))
+		uintptr(unsafe.Pointer(input)),
+		uintptr(outputSize),
+		uintptr(unsafe.Pointer(output)),
+		uintptr(unsafe.Pointer(requiredSize)))
 
 	if r0 == 0 {
 		if e1 != 0 {

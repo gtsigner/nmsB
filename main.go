@@ -1,9 +1,10 @@
 package main
 
 import (
+	"log"
+
 	"./cmd"
 	"./cmd/execute"
-	"log"
 )
 
 var (
@@ -11,7 +12,7 @@ var (
 	RELEASE string
 )
 
-func main() {
+func main2() {
 	// parse the CMD
 	args, err := cmd.Parse()
 	if err != nil {

@@ -1,8 +1,9 @@
 package win
 
 import (
-	"log"
 	"testing"
+
+	"./api"
 )
 
 func TestLookupPrivilegeName(t *testing.T) {
@@ -14,9 +15,7 @@ func TestLookupPrivilegeName(t *testing.T) {
 		return
 	}
 
-	log.Println(*luid)
-
-	name, err := LookupPrivilegeName("", *luid)
+	name, err := LookupPrivilegeName("", luid)
 	if err != nil {
 		t.Errorf(err.Error())
 		return
@@ -35,12 +34,15 @@ func TestEnableDebugPrivilege(t *testing.T) {
 		return
 	}
 
-	names, err := GetCurrentProcessPrivileges()
+	privilege, err := GetCurrentProcessPrivilege("SeShutdownPrivilege")
 	if err != nil {
 		t.Errorf(err.Error())
 		return
 	}
 
-	log.Println(names)
+	if privilege == nil || privilege.Attributes != api.SE_PRIVILEGE_ENABLED {
+		t.Fatalf("fail to enable privilege 'SeShutdownPrivilege'")
+		return
+	}
 
 }
