@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	"../../win"
 	"../process"
@@ -56,5 +55,5 @@ func TestInject(t *testing.T) {
 
 	log.Printf("0x%X", dllHandle)
 
-	time.Sleep(time.Second * 100)
+	//time.Sleep(time.Second * 100)
 }

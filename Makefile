@@ -51,14 +51,14 @@ build-windows:
 	$(MAKE) GO_LD_FLAGS="$(GO_LD_FLAGS)" BUILD_MODE=$(BUILD_MODE) EXE_ENDOING=$(EXE_ENDOING) _GOOS=$(_GOOS) _GOARCH=$(_GOARCH) build
 
 build-dll: EXE_ENDOING = .dll
-build-dll: BUILD_MODE = c-shared
+build-dll: BUILD_MODE = c-archive
 build-dll: MAIN_FILES = $(DLL_MAIN_FILES)
 build-dll:
 	$(MAKE) GO_LD_FLAGS="$(GO_LD_FLAGS)" MAIN_FILES="$(MAIN_FILES)" BUILD_MODE="$(BUILD_MODE)" EXE_ENDOING="$(EXE_ENDOING)" _GOOS=$(_GOOS) _GOARCH=$(_GOARCH) build
 
 build: OUTOUT=$(EXECUTABLE)-$(_GOOS)-$(_GOARCH)$(EXE_ENDOING)
 build: dependencies	
-	@GOOS=$(_GOOS) GOARCH=$(_GOARCH) $(GOBUILD) -buildmode=$(BUILD_MODE) -ldflags "$(GO_LD_FLAGS)" -o $(BIN_DIR)/$(OUTOUT) $(MAIN_FILES)
+	@GOOS=$(_GOOS) CGO_ENABLED=1 GOARCH=$(_GOARCH) $(GOBUILD) -buildmode=$(BUILD_MODE) -ldflags "$(GO_LD_FLAGS)" -o $(BIN_DIR)/$(OUTOUT) $(MAIN_FILES)
 
 dependencies:
 	$(GOGET) gopkg.in/yaml.v2
