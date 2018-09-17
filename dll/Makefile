@@ -1,5 +1,7 @@
-liblibrary.so: dllmain.cpp
-	gcc -o libmain.dll dllmain.cpp -std=c++17 -O3 -Wall -Wextra -fPIC -shared
+main.a: main.go
+	go build -buildmode=c-archive main.go
 
-fancy: main.go
-	go build -x -buildmode=c-shared -o main-fix.dll main.go
+# ws2_32 - Winsock2.h
+# winmm - Timeapi.h
+main.dll: main.a dll_main/dll_main.c
+	gcc -shared -pthread -o main.dll dll_main/dll_main.c main.a -lws2_32 -lwinmm

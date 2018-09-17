@@ -1,30 +1,32 @@
 package main
 
-// #cgo CFLAGS: -g -Wall
-// #include "fix-main.hpp"
-import "C"
-
 import (
 	"io/ioutil"
-	"log"
+	"runtime"
 	"time"
 )
 
-func main() {
-	Attach()
-}
+import "C"
 
-//export Attach
-func Attach() {
-
-	//C.aatest()
-
+func write(fpath string) {
 	now := time.Now()
-
 	d1 := []byte(now.String())
-	err := ioutil.WriteFile("/Temp/test.txt", d1, 0644)
+	err := ioutil.WriteFile(fpath, d1, 0644)
 	if err != nil {
-		log.Panicln(err)
+		//log.Panicln(err)
 	}
-
 }
+
+//export ProcessAttached
+func ProcessAttached() {
+	runtime.LockOSThread()
+	go write("/Temp/process-attached.txt")
+}
+
+//export ThreadAttached
+func ThreadAttached() {
+	runtime.LockOSThread()
+	write("/Temp/thread-attached.txt")
+}
+
+func main() {}

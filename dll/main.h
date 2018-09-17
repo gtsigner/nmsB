@@ -17,11 +17,6 @@ typedef struct { const char *p; ptrdiff_t n; } _GoString_;
 /* Start of preamble from import "C" comments.  */
 
 
-#line 3 "C:\\_myplace\\private\\nmsB\\dll\\main.go"
-
- #include "fix-main.hpp"
-
-#line 1 "cgo-generated-wrapper"
 
 
 /* End of preamble from import "C" comments.  */
@@ -70,7 +65,9 @@ extern "C" {
 #endif
 
 
-extern void Attach();
+extern void ProcessAttached();
+
+extern void ThreadAttached();
 
 #ifdef __cplusplus
 }
