@@ -10,7 +10,7 @@ FILES = $(call rwildcard, ,*.go)
 MAIN_FILES = main.go
 
 # DLL Main files
-DLL_MAIN_FILES = main_dll.go
+DLL_MAIN_FILES = dll/main.go
 
 # Executabels
 EXECUTABLE = nmsB
@@ -51,7 +51,7 @@ build-windows:
 	$(MAKE) GO_LD_FLAGS="$(GO_LD_FLAGS)" BUILD_MODE=$(BUILD_MODE) EXE_ENDOING=$(EXE_ENDOING) _GOOS=$(_GOOS) _GOARCH=$(_GOARCH) build
 
 build-dll: EXE_ENDOING = .dll
-build-dll: BUILD_MODE = c-archive
+build-dll: BUILD_MODE = c-shared
 build-dll: MAIN_FILES = $(DLL_MAIN_FILES)
 build-dll:
 	$(MAKE) GO_LD_FLAGS="$(GO_LD_FLAGS)" MAIN_FILES="$(MAIN_FILES)" BUILD_MODE="$(BUILD_MODE)" EXE_ENDOING="$(EXE_ENDOING)" _GOOS=$(_GOOS) _GOARCH=$(_GOARCH) build

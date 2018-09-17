@@ -22,7 +22,7 @@ func Exists(name string) (bool, error) {
 }
 
 func TestInject(t *testing.T) {
-	dllPath := "../../dist/nmsB-windows-amd64.dll"
+	dllPath := "../../dll/main-fix.dll"
 
 	absPath, err := filepath.Abs(dllPath)
 	if err != nil {
@@ -42,7 +42,7 @@ func TestInject(t *testing.T) {
 		return
 	}
 
-	handle, err := process.OpenCurrent()
+	handle, err := process.Open(uint(2008))
 	if err != nil {
 		t.Errorf(err.Error())
 		return
