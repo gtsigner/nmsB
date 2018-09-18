@@ -62,6 +62,7 @@ func TestDllAsInject(t *testing.T) {
 		t.Errorf(err.Error())
 		return
 	}
+
 	dllHandle, err := dll.InjectDll(handle, dllPath)
 	if err != nil {
 		t.Error(err)
@@ -69,6 +70,12 @@ func TestDllAsInject(t *testing.T) {
 	}
 
 	log.Printf("0x%X", dllHandle)
+
+	err = dll.CallRemoteProc(handle, dllPath, "Init", "Test")
+	if err != nil {
+		t.Error(err)
+		return
+	}
 
 	//time.Sleep(time.Second * 100)
 }

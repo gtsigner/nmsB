@@ -69,6 +69,8 @@ extern void ProcessAttached();
 
 extern void ThreadAttached();
 
+extern void Init(GoSlice p0);
+
 #ifdef __cplusplus
 }
 #endif
