@@ -12,7 +12,7 @@ var (
 	RELEASE string
 )
 
-func main2() {
+func main() {
 	// parse the CMD
 	args, err := cmd.Parse()
 	if err != nil {

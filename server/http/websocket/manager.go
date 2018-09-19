@@ -3,7 +3,7 @@ package websocket
 import (
 	"sync"
 
-	"../../utils"
+	"../../../utils"
 	ws "github.com/gorilla/websocket"
 )
 

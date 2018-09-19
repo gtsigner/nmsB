@@ -1,10 +1,15 @@
 package dll
 
+/*
+#include <stdlib.h>
+#include <string.h>
+*/
+import "C"
+
 import (
 	"fmt"
 	"log"
 	"path/filepath"
-	"syscall"
 	"unsafe"
 
 	"../api"
@@ -14,35 +19,38 @@ import (
 )
 
 func CallRemoteProc(handle windows.Handle, dllPath string, procName string, parameter string) error {
+	// get the rmote address of the given dll
 	procAddress, err := GetRemoteProcAddress(handle, dllPath, procName)
 	if err != nil {
 		return err
 	}
 
-	data, err := syscall.UTF16FromString(parameter)
-	if err != nil {
-		return fmt.Errorf("fail to convert [ %s ] to []uint16, because %s", parameter, err.Error())
-	}
+	// convert the parameter toa CString
+	cParameter := C.CString(parameter)
+	// free the CString after usage
+	defer C.free(unsafe.Pointer(cParameter))
+	// count the length of the cStrCStringing
+	cParameterLength := uint32(C.strlen(cParameter))
 
-	dataLength := uint32((len(data) + 1)) * uint32(unsafe.Sizeof(data[0]))
-
-	parameterRemoteAddress, err := api.VirtualAllocEx(handle, 0, dataLength, windows.MEM_COMMIT, windows.PAGE_READWRITE)
+	// allocate memory in remote process
+	parameterRemoteAddress, err := api.VirtualAllocEx(handle, 0, cParameterLength, windows.MEM_COMMIT, windows.PAGE_READWRITE)
 	if err != nil {
 		return fmt.Errorf("fail to allocate memory, because %s", err.Error())
 	}
-	//defer api.VirtualFreeEx(handle, parameterRemoteAddress, 0, windows.MEM_RELEASE)
-	log.Printf("parameterRemoteAddress: 0x%X", parameterRemoteAddress)
 
-	_, err = api.WriteProcessMemory(handle, parameterRemoteAddress, unsafe.Pointer(&data[0]), dataLength)
+	// write the parameter to remote address
+	_, err = api.WriteProcessMemory(handle, parameterRemoteAddress, unsafe.Pointer(cParameter), cParameterLength)
 	if err != nil {
 		return fmt.Errorf("fail to write parameter data [ %d bytes ] to [ 0x%X ], because %s",
-			dataLength, parameterRemoteAddress, err.Error())
+			cParameterLength, parameterRemoteAddress, err.Error())
 	}
 
+	// create the thread for the given remote proc with the parameter
 	thread, _, err := api.CreateRemoteThread(handle, MakeInheritSa(), 0, procAddress, parameterRemoteAddress, 0)
 	if err != nil {
 		return fmt.Errorf("fail to create remote thread, because %s", err.Error())
 	}
+	// close the thread handle
 	defer windows.CloseHandle(thread)
 
 	return nil

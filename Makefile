@@ -1,19 +1,17 @@
+# Name of executable and shared dll
+MAIN = nmsB
 # Version and Relase 
 VERSION	= 0.0.1
 RELEASE = $(shell date '+%d-%m-%Y %H:%M:%S')
 
-# define recursive wildcards
-rwildcard=$(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
-# GO Files
-FILES = $(call rwildcard, ,*.go)
-# Main files
-MAIN_FILES = main.go
+# Output directory [default: ./dist]
+OUTPUT_DIR = $(CURDIR)/dist
 
-# DLL Main files
-DLL_MAIN_FILES = dll/main.go
+# Server Files
+SERVER_FILES = $(CURDIR)/server/main/main.go
 
-# Executabels
-EXECUTABLE = nmsB
+# DLL Files
+DLL_FILES = dll/main.go
 
 # GO commands
 GO			= go
@@ -27,43 +25,54 @@ _GOARCH		= amd64
 # GO FLAGS
 GO_LD_FLAGS  = -X "main.VERSION=$(VERSION)"  -X 'main.RELEASE=$(RELEASE)'
 
-# $(CURDIR)
-BIN_DIR = $(CURDIR)/dist
-
 # Default Build variables
-EXE_ENDOING	= .exe
+INPUT =
+OUTPUT =
 BUILD_MODE	= exe
+OUTPUT_NAME = $(MAIN)-$(_GOOS)-$(_GOARCH)
+
+# +++ Common +++
 
 .PHONY: clean
 
-all: build-windows
+all: build-server build-dll
 
-release: GO_LD_FLAGS += -s -w
-release: build-windows
+clean:
+	@-rm -r $(OUTPUT_DIR)
 
 test:
 	$(GOTEST) -v ./...
 
-fmt:
-	$(GOFMT) -l -e -w $(FILES)
+# +++ Release +++
 
-build-windows: 	
-	$(MAKE) GO_LD_FLAGS="$(GO_LD_FLAGS)" BUILD_MODE=$(BUILD_MODE) EXE_ENDOING=$(EXE_ENDOING) _GOOS=$(_GOOS) _GOARCH=$(_GOARCH) build
+release: GO_LD_FLAGS += -s -w
+release: build-server build-dll
 
-build-dll: EXE_ENDOING = .dll
+# +++ Server +++
+
+build-server: BUILD_MODE = exe
+build-server: INPUT = $(SERVER_FILES)
+build-server: OUTPUT = $(OUTPUT_DIR)/$(OUTPUT_NAME).exe
+build-server:
+	$(MAKE) BUILD_MODE="$(BUILD_MODE)" GO_LD_FLAGS="$(GO_LD_FLAGS)" OUTPUT="$(OUTPUT)" INPUT="$(INPUT)" build
+
+# +++ Dll +++
+
 build-dll: BUILD_MODE = c-shared
-build-dll: MAIN_FILES = $(DLL_MAIN_FILES)
+build-dll: INPUT = $(DLL_FILES)
+build-dll: OUTPUT = $(OUTPUT_DIR)/$(OUTPUT_NAME).dll
 build-dll:
-	$(MAKE) GO_LD_FLAGS="$(GO_LD_FLAGS)" MAIN_FILES="$(MAIN_FILES)" BUILD_MODE="$(BUILD_MODE)" EXE_ENDOING="$(EXE_ENDOING)" _GOOS=$(_GOOS) _GOARCH=$(_GOARCH) build
+	$(MAKE) BUILD_MODE="$(BUILD_MODE)" GO_LD_FLAGS="$(GO_LD_FLAGS)" OUTPUT="$(OUTPUT)" INPUT="$(INPUT)" build
 
-build: OUTOUT=$(EXECUTABLE)-$(_GOOS)-$(_GOARCH)$(EXE_ENDOING)
+# +++ Build Target +++
+
 build: dependencies	
-	@GOOS=$(_GOOS) CGO_ENABLED=1 GOARCH=$(_GOARCH) $(GOBUILD) -buildmode=$(BUILD_MODE) -ldflags "$(GO_LD_FLAGS)" -o $(BIN_DIR)/$(OUTOUT) $(MAIN_FILES)
+	@GOOS=$(_GOOS) GOARCH=$(_GOARCH) $(GOBUILD) -buildmode=$(BUILD_MODE) -ldflags "$(GO_LD_FLAGS)" -o $(OUTPUT) $(INPUT)
+
+# +++ Dependencies +++
 
 dependencies:
 	$(GOGET) gopkg.in/yaml.v2
 	$(GOGET) golang.org/x/sys/windows
 	$(GOGET) github.com/gorilla/websocket
 
-clean:
-	@-rm -r $(BIN_DIR)

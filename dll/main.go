@@ -1,14 +1,20 @@
 package main
 
+/*
+#include <stdlib.h>
+*/
+import "C"
+
 import (
 	"fmt"
 	"io/ioutil"
-	"runtime"
-	"syscall"
 	"time"
 )
 
-import "C"
+var (
+	VERSION string
+	RELEASE string
+)
 
 func write(fpath string) {
 	now := time.Now()
@@ -23,24 +29,12 @@ func writeData(fpath string, data string) {
 	}
 }
 
-//export ProcessAttached
-func ProcessAttached() {
-	runtime.LockOSThread()
-	go write("/Temp/process-attached.txt")
-}
-
-//export ThreadAttached
-func ThreadAttached() {
-	runtime.LockOSThread()
-	write("/Temp/thread-attached.txt")
-}
-
 //export Init
-func Init(C.CString) {
+func Init(cParameter *C.char) {
+	// cpnvert CString to go string
+	parameter := C.GoString(cParameter)
 
-	content := fmt.Sprintf(", %s", , s)
-	writeData("/Temp/main.txt", content)
-
+	go writeData("/Temp/main.txt", fmt.Sprintf("%s, version: %s", parameter, VERSION))
 }
 
 func main() {}

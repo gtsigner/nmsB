@@ -1,18 +1,20 @@
-package test
+package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
-	"../../win"
-	"../../win/dll"
-	"../../win/process"
+	"../win"
+	"../win/dll"
+	"../win/process"
 )
 
 var (
-	DLL_FILE            = "../main.dll"
+	DLL_FILE            = "../dist/nmsB-windows-amd64.dll"
 	TARGET_PROCESS_NAME = "notepad.exe"
 )
 
@@ -71,7 +73,9 @@ func TestDllAsInject(t *testing.T) {
 
 	log.Printf("0x%X", dllHandle)
 
-	err = dll.CallRemoteProc(handle, dllPath, "Init", "Test")
+	now := time.Now()
+	parameter := fmt.Sprintf("{\"port\":4567, \"host\":\"test\", \"date\": \"%s\"}", now.String())
+	err = dll.CallRemoteProc(handle, dllPath, "Init", parameter)
 	if err != nil {
 		t.Error(err)
 		return
