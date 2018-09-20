@@ -3,12 +3,20 @@ package server
 import (
 	"log"
 
+	"../config"
 	"../sys/signal"
 	"./http"
 	"./instance"
 )
 
 func start(instance *instance.ServerInstance) error {
+	// load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		return err
+	}
+	instance.Config = cfg
+
 	// starting http server
 	httpServer, err := http.RunHttpServer(nil, nil)
 	if err != nil {

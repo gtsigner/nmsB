@@ -1,18 +1,36 @@
 package config
 
 import (
-	"fmt"
+	"log"
+
+	"../utils"
 )
 
+
 func Load() (*Config, error) {
-	configFile, err := findConfigFile()
+	// find the config file
+	configFile, err := getConfigFile()
+	if err != nil {
+		return nil, err
+	}
+	log.Printf("loading configuration from file [ %s ]", configFile)
+
+	// load default config
+	defaultConfig := DefaultConfig(configFile)
+
+	// load the config from file system
+	config, err := readConfig(defaultConfig, configFile)
 	if err != nil {
 		return nil, err
 	}
 
-	if configFile == nil {
-		return nil, fmt.Errorf("unable to find config file [ %s ] in [CURDIR] and [USER_HOME]", CONFIG_FILE)
-	}
+	return config, nil
+}
 
-	return nil, nil
+func readConfig(config *Config, configFile string) (*Config, error) {
+	err := utils.ReadObject(configFile, config)
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
 }

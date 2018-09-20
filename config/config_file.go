@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"path/filepath"
 
@@ -16,10 +17,11 @@ const (
 func toConfigPath(configFile string) (*string, error) {
 	// check if path is abs
 	if !filepath.IsAbs(configFile) {
-		configFile, err := filepath.Abs(configFile)
+		absConfigFile, err := filepath.Abs(configFile)
 		if err != nil {
 			return nil, err
 		}
+		configFile = absConfigFile
 	}
 	// check if the file exists
 	exists, err := utils.FileExists(configFile)
@@ -84,4 +86,23 @@ func findConfigFile() (*string, error) {
 	}
 
 	return nil, nil
+}
+
+func getFileExtension(fpath string) string {
+	ext := filepath.Ext(fpath)
+	withoutDot := strings.TrimLeft(ext, ".")
+	return strings.ToLower(withoutDot)
+}
+
+func getConfigFile() (string, error) {
+	configFile, err := findConfigFile()
+	if err != nil {
+		return "", err
+	}
+
+	if configFile == nil {
+		return "", fmt.Errorf("unable to find config file [ %s ] in [CURDIR] and [USER_HOME]", CONFIG_FILE)
+	}
+
+	return *configFile, nil
 }

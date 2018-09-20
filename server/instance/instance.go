@@ -1,13 +1,15 @@
 package instance
 
 import (
+	"../../config"
 	"../http"
 )
 
-func NewServerInstance() *ServerInstance {
-	return &ServerInstance{}
+type ServerInstance struct {
+	Config     *config.Config
+	HttpServer *http.HttpServer
 }
 
-type ServerInstance struct {
-	HttpServer *http.HttpServer
+func NewServerInstance() *ServerInstance {
+	return &ServerInstance{}
 }
