@@ -18,7 +18,7 @@ func start(instance *instance.ServerInstance) error {
 	instance.Config = cfg
 
 	// starting http server
-	httpServer, err := http.RunHttpServer(nil, nil)
+	httpServer, err := http.RunHttpServer(cfg.Http, nil)
 	if err != nil {
 		return err
 	}

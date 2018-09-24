@@ -6,24 +6,39 @@ import (
 	"../utils"
 )
 
-
 func Load() (*Config, error) {
-	// find the config file
-	configFile, err := getConfigFile()
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("loading configuration from file [ %s ]", configFile)
+	// create default config
+	defaultConfig := DefaultConfig()
 
-	// load default config
-	defaultConfig := DefaultConfig(configFile)
-
-	// load the config from file system
-	config, err := readConfig(defaultConfig, configFile)
+	// overwrite default with all config files
+	config, err := readConfigFiles(defaultConfig)
 	if err != nil {
 		return nil, err
 	}
 
+	return config, nil
+}
+
+func readConfigFiles(config *Config) (*Config, error) {
+	allConfigFiles, err := configFiles()
+	if err != nil {
+		return nil, err
+	}
+
+	// check if some config files exists
+	if allConfigFiles == nil || len(allConfigFiles) > 0 {
+		return config, nil
+	}
+
+	for index, configFile := range allConfigFiles {
+		log.Printf("loading config file [ %s ] at index [ %d ]", configFile, index)
+		// loading config and owerwrite
+		updatedConfig, err := readConfig(config, configFile)
+		if err != nil {
+			return nil, err
+		}
+		config = updatedConfig
+	}
 	return config, nil
 }
 

@@ -4,10 +4,9 @@ import (
 	"time"
 )
 
-func DefaultConfig(configFile string) *Config {
+func DefaultConfig() *Config {
 	httpConfig := DefaultsHttpConfig()
 	return &Config{
-		File: &configFile,
 		Http: httpConfig,
 	}
 }

@@ -2,107 +2,99 @@ package config
 
 import (
 	"fmt"
-	"os"
-	"strings"
 
 	"path/filepath"
 
 	"../utils"
 )
 
-const (
-	CONFIG_FILE = "config.yml"
+var (
+	fileEndings = []string{"json", "yml", "yaml"}
+	fileNames   = []string{"config", "config.dev", "config.local"}
 )
 
-func toConfigPath(configFile string) (*string, error) {
-	// check if path is abs
-	if !filepath.IsAbs(configFile) {
-		absConfigFile, err := filepath.Abs(configFile)
-		if err != nil {
-			return nil, err
-		}
-		configFile = absConfigFile
-	}
-	// check if the file exists
-	exists, err := utils.FileExists(configFile)
+func inspectConfigDirectory(directory string) ([]string, error) {
+	// check if the directory exists
+	exists, err := utils.FileExists(directory)
 	if err != nil {
 		return nil, err
 	}
 
-	if exists {
+	// check if the directory exists
+	if !exists {
 		return nil, nil
 	}
 
-	return &configFile, nil
-}
+	var configFiles []string
+	for _, fileName := range fileNames {
+		// find all configFile for the given name
+		fileNameConfigs, err := inspectConfigFile(directory, fileName)
+		if err != nil {
+			return nil, err
+		}
 
-func getPWDConfig() (*string, error) {
-	configPath := filepath.Join(".", CONFIG_FILE)
-	configFile, err := toConfigPath(configPath)
-	return configFile, err
-}
-
-func userHome() (*string, error) {
-	userProfile := os.Getenv("USERPROFILE")
-	if userProfile != "" {
-		return &userProfile, nil
+		// append found config files
+		if fileNameConfigs != nil && len(fileNameConfigs) > 0 {
+			configFiles = append(configFiles, fileNameConfigs...)
+		}
 	}
 
-	userHome := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
-	if userHome != "" {
-		return &userHome, nil
-	}
-	return nil, fmt.Errorf("unable to find user home directory")
+	return configFiles, nil
 }
 
-func getUserHomeConfig() (*string, error) {
-	homeDirectory, err := userHome()
+func inspectConfigFile(directory string, fileName string) ([]string, error) {
+	var configFiles []string
+	for _, ending := range fileEndings {
+		// create the fincig file for the ending
+		configFile, err := toConfigFile(directory, fileName, ending)
+		if err != nil {
+			return nil, err
+		}
+		// check if the config file exists
+		configExists, err := utils.FileExists(configFile)
+		if err != nil {
+			return nil, err
+		}
+		// add the config if exists
+		if configExists {
+			configFiles = append(configFiles, configFile)
+		}
+	}
+	return configFiles, nil
+}
+
+func toConfigFile(directory string, fileName string, ending string) (string, error) {
+	configFileName := fmt.Sprintf("%s.%s", fileName, ending)
+	configFile := filepath.Join(directory, configFileName)
+	absConfigPath, err := filepath.Abs(configFile)
+	return absConfigPath, err
+}
+
+func configFiles() ([]string, error) {
+	// serach for all config directires
+	directories, err := configDirectories()
 	if err != nil {
 		return nil, err
 	}
-	configPath := filepath.Join(*homeDirectory, CONFIG_FILE)
-	configFile, err := toConfigPath(configPath)
-	return configFile, err
-}
 
-func findConfigFile() (*string, error) {
-	// try to find config in user-home
-	userConfigFile, err := getUserHomeConfig()
-	if err != nil {
-		return nil, err
-	}
-	if userConfigFile != nil {
-		return userConfigFile, nil
+	// check if some directories found
+	if directories == nil || len(directories) > 0 {
+		return nil, nil
 	}
 
-	// try to find config in pwd
-	pwdConfigFile, err := getPWDConfig()
-	if err != nil {
-		return nil, err
+	var configFiles []string
+	// inspect all directories
+	for _, directory := range directories {
+		// inspect and get all configs for directory
+		directoryConfigFiles, err := inspectConfigDirectory(directory)
+		if err != nil {
+			return nil, err
+		}
+		// append if config files available
+		if directoryConfigFiles != nil && len(directoryConfigFiles) > 0 {
+			configFiles = append(configFiles, directoryConfigFiles...)
+		}
 	}
 
-	if pwdConfigFile != nil {
-		return pwdConfigFile, nil
-	}
-
-	return nil, nil
-}
-
-func getFileExtension(fpath string) string {
-	ext := filepath.Ext(fpath)
-	withoutDot := strings.TrimLeft(ext, ".")
-	return strings.ToLower(withoutDot)
-}
-
-func getConfigFile() (string, error) {
-	configFile, err := findConfigFile()
-	if err != nil {
-		return "", err
-	}
-
-	if configFile == nil {
-		return "", fmt.Errorf("unable to find config file [ %s ] in [CURDIR] and [USER_HOME]", CONFIG_FILE)
-	}
-
-	return *configFile, nil
+	return configFiles, nil
 }
