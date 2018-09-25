@@ -3,17 +3,19 @@ package instance
 import (
 	"../../config"
 	"../dispatch"
+	"../dispatch/context"
 	"../http"
-	"../http/websocket"
 )
 
 type ServerInstance struct {
-	Config           *config.Config
-	HttpServer       *http.HttpServer
-	Dispatcher       *dispatch.Dispatcher
-	WebSocketManager *websocket.WebSocketManager
+	Version        string
+	Release        string
+	Config         *config.Config
+	HttpServer     *http.HttpServer
+	Dispatcher     *dispatch.Dispatcher
+	DispactContext *context.DispatchContext
 }
 
-func NewServerInstance() *ServerInstance {
+func NewServerInstance(version string, release string) *ServerInstance {
 	return &ServerInstance{}
 }

@@ -6,8 +6,8 @@ import (
 	"../config"
 	"../sys/signal"
 	"./dispatch"
+	"./dispatch/context"
 	"./http"
-	"./http/websocket"
 	"./instance"
 )
 
@@ -19,13 +19,14 @@ func start(instance *instance.ServerInstance) error {
 	}
 	instance.Config = cfg
 
-	// create a new Websocket Manager
-	instance.WebSocketManager = websocket.NewWebSocketManager()
+	// create the dispatch context
+	dispatchContext := context.CreateDispatchContext(instance.Version, instance.Release)
+
 	// create the dispatcher
-	instance.Dispatcher = dispatch.CreateDispacther(instance.WebSocketManager)
+	instance.Dispatcher = dispatch.CreateDispacther(dispatchContext)
 
 	// starting http server
-	httpServer, err := http.RunHttpServer(cfg.Http, instance.WebSocketManager)
+	httpServer, err := http.RunHttpServer(cfg.Http, dispatchContext.WebSocketManager)
 	if err != nil {
 		return err
 	}
@@ -49,13 +50,18 @@ func shutdown(instance *instance.ServerInstance) error {
 		}
 	}
 
+	// shutdown the dispatcher
+	if instance.Dispatcher != nil {
+		instance.Dispatcher.Close()
+	}
+
 	return nil
 }
 
 func Run(version string, release string) error {
 	log.Printf("starting server [ version: %s, release: %s ]", version, release)
 	// create the server instance
-	instance := instance.NewServerInstance()
+	instance := instance.NewServerInstance(version, release)
 
 	// start the server
 	err := start(instance)

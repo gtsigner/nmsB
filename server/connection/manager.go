@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"../../message"
+	"../../utils"
 	"../http/websocket"
 )
 
@@ -27,6 +28,8 @@ func (manager *ConnectionManager) RegisterDll(webSocket *websocket.WebSocket) {
 	manager.unregisterDll()
 	// set the given connection as connection
 	manager.dll = connection
+
+	log.Printf("successful register websocket [ %s ] as dll connection", webSocket.Id)
 }
 
 func (manager *ConnectionManager) RegisterClient(webSocket *websocket.WebSocket) {
@@ -38,6 +41,8 @@ func (manager *ConnectionManager) RegisterClient(webSocket *websocket.WebSocket)
 	connection := NewConnection(webSocket)
 	// register connection as client
 	manager.clients[webSocket.Id] = connection
+
+	log.Printf("successful register websocket [ %s ] as client connection", webSocket.Id)
 }
 
 func (manager *ConnectionManager) Unregister(webSocket *websocket.WebSocket) {
@@ -46,10 +51,14 @@ func (manager *ConnectionManager) Unregister(webSocket *websocket.WebSocket) {
 	defer manager.lock.Unlock()
 
 	// check if the webcoket is a client
-	_, ok := manager.clients[webSocket.Id]
+	connection, ok := manager.clients[webSocket.Id]
 	if ok {
+		// close the connection
+		manager.close(connection)
 		// remove the client from clients
 		delete(manager.clients, webSocket.Id)
+
+		log.Printf("successful unregister websocket [ %s ] from client connection", webSocket.Id)
 		return
 	}
 
@@ -66,10 +75,14 @@ func (manager *ConnectionManager) Unregister(webSocket *websocket.WebSocket) {
 }
 
 func (manager *ConnectionManager) unregisterDll() {
+	// check if dll connection available
 	if manager.dll != nil {
-		log.Printf("closing dll connection")
+		// close the connection
 		manager.close(manager.dll)
+
+		log.Printf("successful unregister websocket [ %s ] from dll connection", manager.dll.webSocket.Id)
 	}
+	// set dll to nil
 	manager.dll = nil
 }
 
@@ -121,4 +134,37 @@ func (manager *ConnectionManager) WriteToClient(id string, msg *message.Message)
 	// write the message to the found connection
 	err := connection.Write(msg)
 	return err
+}
+
+func (manager *ConnectionManager) IsDllConnection(id string) bool {
+	// lock for read
+	manager.lock.RLock()
+	defer manager.lock.RUnlock()
+
+	// check if a connection exists
+	if manager.dll == nil {
+		return false
+	}
+
+	// check if id is equal of the dll connection
+	webSocket := manager.dll.webSocket
+	return webSocket.Id == id
+}
+
+func (manager *ConnectionManager) PushServerStatus() {
+	serverId := "server"
+	requestId, err := utils.RandString(int64(32))
+
+	messageType := message.ServerStatus
+	return &message.ServerStatusMessage{
+		Message: message.Message{
+			ClientId:  &serverId,
+			Type:      &messageType,
+			RequestId: &requestId,
+		},
+		Version:   &version,
+		Release:   &release,
+		Connected: &connected,
+	}
+
 }

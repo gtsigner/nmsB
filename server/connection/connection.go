@@ -1,9 +1,8 @@
 package connection
 
 import (
-	"encoding/json"
-
 	"../../message"
+	"../../message/json"
 	"../http/websocket"
 )
 
@@ -16,13 +15,12 @@ func (connection *Connection) IsWebSocket(webSocket *websocket.WebSocket) bool {
 }
 
 func (connection *Connection) Write(msg *message.Message) error {
-	// convert the message to json
-	bytes, err := json.Marshal(msg)
+	data, err := json.Encode(msg)
 	if err != nil {
 		return err
 	}
 	// write the json string to the websocket
-	connection.webSocket.Write(string(bytes))
+	connection.webSocket.Write(data)
 
 	return nil
 }
