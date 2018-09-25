@@ -5,7 +5,9 @@ import (
 
 	"../config"
 	"../sys/signal"
+	"./dispatch"
 	"./http"
+	"./http/websocket"
 	"./instance"
 )
 
@@ -17,8 +19,13 @@ func start(instance *instance.ServerInstance) error {
 	}
 	instance.Config = cfg
 
+	// create a new Websocket Manager
+	instance.WebSocketManager = websocket.NewWebSocketManager()
+	// create the dispatcher
+	instance.Dispatcher = dispatch.CreateDispacther(instance.WebSocketManager)
+
 	// starting http server
-	httpServer, err := http.RunHttpServer(cfg.Http, nil)
+	httpServer, err := http.RunHttpServer(cfg.Http, instance.WebSocketManager)
 	if err != nil {
 		return err
 	}
