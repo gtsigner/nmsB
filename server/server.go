@@ -12,6 +12,7 @@ import (
 )
 
 func start(instance *instance.ServerInstance) error {
+	log.Println("loading configuration files")
 	// load configuration
 	cfg, err := config.Load()
 	if err != nil {
@@ -19,12 +20,13 @@ func start(instance *instance.ServerInstance) error {
 	}
 	instance.Config = cfg
 
+	log.Println("initiating server dispatcher")
 	// create the dispatch context
 	dispatchContext := context.CreateDispatchContext(instance.Version, instance.Release)
-
 	// create the dispatcher
 	instance.Dispatcher = dispatch.CreateDispacther(dispatchContext)
 
+	log.Println("starting http web-server")
 	// starting http server
 	httpServer, err := http.RunHttpServer(cfg.Http, dispatchContext.WebSocketManager)
 	if err != nil {
@@ -44,6 +46,7 @@ func await() {
 func shutdown(instance *instance.ServerInstance) error {
 	// shutdown the http server
 	if instance.HttpServer != nil {
+		log.Println("shutdown http web-server")
 		err := instance.HttpServer.Shutdown()
 		if err != nil {
 			return err
@@ -52,6 +55,7 @@ func shutdown(instance *instance.ServerInstance) error {
 
 	// shutdown the dispatcher
 	if instance.Dispatcher != nil {
+		log.Println("closing server dispatcher")
 		instance.Dispatcher.Close()
 	}
 

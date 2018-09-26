@@ -5,8 +5,7 @@ import (
 	"log"
 	"sync"
 
-	"../../message"
-	"../../utils"
+	"../../message/json"
 	"../http/websocket"
 )
 
@@ -90,23 +89,43 @@ func (manager *ConnectionManager) close(connection *Connection) {
 	go connection.webSocket.Close()
 }
 
-func (manager *ConnectionManager) WriteToClients(msg *message.Message) error {
+func (manager *ConnectionManager) WriteToClients(v interface{}) error {
+	// convert message to string
+	data, err := json.Encode(v)
+	if err != nil {
+		return err
+	}
+
+	// write the string to all clients
+	manager.WriteStringToClients(data)
+
+	return nil
+}
+
+func (manager *ConnectionManager) WriteStringToClients(data string) {
 	// lock for read
 	manager.lock.RLock()
 	defer manager.lock.RUnlock()
 
 	// write the message to all clients
 	for _, connection := range manager.clients {
-		err := connection.Write(msg)
-		if err != nil {
-			return err
-		}
+		connection.WriteString(data)
 	}
-
-	return nil
 }
 
-func (manager *ConnectionManager) WriteToDll(msg *message.Message) error {
+func (manager *ConnectionManager) WriteToDll(v interface{}) error {
+	// convert message to string
+	data, err := json.Encode(v)
+	if err != nil {
+		return err
+	}
+
+	// write the message to dll
+	err = manager.WriteStringToDll(data)
+	return err
+}
+
+func (manager *ConnectionManager) WriteStringToDll(data string) error {
 	// lock for read
 	manager.lock.RLock()
 	defer manager.lock.RUnlock()
@@ -115,12 +134,23 @@ func (manager *ConnectionManager) WriteToDll(msg *message.Message) error {
 		return fmt.Errorf("unable to write message to dll, because no dll connected")
 	}
 
-	// write the message to dll
-	err := manager.dll.Write(msg)
+	// write the data to dll
+	manager.dll.WriteString(data)
+	return nil
+}
+
+func (manager *ConnectionManager) WriteToClient(id string, v interface{}) error {
+	// convert message to string
+	data, err := json.Encode(v)
+	if err != nil {
+		return err
+	}
+
+	err = manager.WriteStringToClient(id, data)
 	return err
 }
 
-func (manager *ConnectionManager) WriteToClient(id string, msg *message.Message) error {
+func (manager *ConnectionManager) WriteStringToClient(id string, data string) error {
 	// lock for read
 	manager.lock.RLock()
 	defer manager.lock.RUnlock()
@@ -132,8 +162,8 @@ func (manager *ConnectionManager) WriteToClient(id string, msg *message.Message)
 	}
 
 	// write the message to the found connection
-	err := connection.Write(msg)
-	return err
+	connection.WriteString(data)
+	return nil
 }
 
 func (manager *ConnectionManager) IsDllConnection(id string) bool {
@@ -151,20 +181,19 @@ func (manager *ConnectionManager) IsDllConnection(id string) bool {
 	return webSocket.Id == id
 }
 
-func (manager *ConnectionManager) PushServerStatus() {
-	serverId := "server"
-	requestId, err := utils.RandString(int64(32))
+func (manager *ConnectionManager) IsDllConnected() bool {
+	// lock for read
+	manager.lock.RLock()
+	defer manager.lock.RUnlock()
 
-	messageType := message.ServerStatus
-	return &message.ServerStatusMessage{
-		Message: message.Message{
-			ClientId:  &serverId,
-			Type:      &messageType,
-			RequestId: &requestId,
-		},
-		Version:   &version,
-		Release:   &release,
-		Connected: &connected,
-	}
+	return manager.dll != nil
+}
 
+func (manager *ConnectionManager) ConnectedClients() int {
+	// lock for read
+	manager.lock.RLock()
+	defer manager.lock.RUnlock()
+
+	count := len(manager.clients)
+	return count
 }

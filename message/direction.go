@@ -10,4 +10,6 @@ const (
 	DllToClient MessageDirection = "d2c"
 	/*DllToClients is a message direction from dll to all clients */
 	DllToClients MessageDirection = "d2cs"
+	/*ServerToClients is a message direction from server to all clients */
+	ServerToClients MessageDirection = "s2cs"
 )

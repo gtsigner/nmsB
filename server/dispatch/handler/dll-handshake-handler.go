@@ -7,6 +7,7 @@ import (
 	"../../../message/json"
 	"../../http/websocket"
 	"../context"
+	"./response"
 )
 
 func decodeDllHandshake(data string) (*message.DllHandshakeMessage, error) {
@@ -39,5 +40,7 @@ func DllHandshakeHandler(ctx *context.DispatchContext, webSocket *websocket.WebS
 	// register successful dll connection
 	ctx.ConnectionManager.RegisterDll(webSocket)
 
-	return nil
+	// notify about changed server
+	err = response.PushServerStatus(ctx)
+	return err
 }

@@ -5,6 +5,7 @@ import (
 
 	"../http/websocket"
 	"./context"
+	"./handler/response"
 )
 
 func dispatchWebSocketClose(ctx *context.DispatchContext, webSocket *websocket.WebSocket) error {
@@ -14,5 +15,7 @@ func dispatchWebSocketClose(ctx *context.DispatchContext, webSocket *websocket.W
 	// unregister the closed websocket
 	connectionManager.Unregister(webSocket)
 
-	return nil
+	// notify about changed server
+	err := response.PushServerStatus(ctx)
+	return err
 }

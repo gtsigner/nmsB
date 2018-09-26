@@ -2,13 +2,11 @@ package json
 
 import (
 	"encoding/json"
-
-	"../../message"
 )
 
-func Encode(msg *message.Message) (string, error) {
+func Encode(v interface{}) (string, error) {
 	// convert the message to json
-	bytes, err := json.Marshal(msg)
+	bytes, err := json.Marshal(v)
 	if err != nil {
 		return "", err
 	}

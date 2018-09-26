@@ -20,11 +20,11 @@ type WebSocketManager struct {
 func NewWebSocketManager() *WebSocketManager {
 	return &WebSocketManager{ // TODO Remove Buffer from Events
 		lock:            sync.RWMutex{},
-		OnOpen:          make(chan OpenEvent, 1),
-		OnClose:         make(chan CloseEvent, 1),
-		OnError:         make(chan ErrorEvent, 1),
-		InBoundMessage:  make(chan InBoundMessageEvent, 1),
-		OutBoundMessage: make(chan OutBoundMessageEvent, 1),
+		OnOpen:          make(chan OpenEvent),
+		OnClose:         make(chan CloseEvent),
+		OnError:         make(chan ErrorEvent),
+		InBoundMessage:  make(chan InBoundMessageEvent),
+		OutBoundMessage: make(chan OutBoundMessageEvent),
 		webSockets:      make(map[string]*WebSocket),
 	}
 }
