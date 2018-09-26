@@ -1,36 +1,62 @@
-import { Injectable } from '@angular/core';
-import { Subject } from 'rxjs';
+import {EventEmitter, Injectable} from '@angular/core';
+import {Message} from "../message/message";
+import {Subscription} from "rxjs";
 
 @Injectable()
 export class WebSocketService {
 
     private socket: WebSocket;
-    private subject: Subject<MessageEvent>;
+    private connected: EventEmitter<void>
+    private eventEmitter: EventEmitter<MessageEvent>;
+
+    constructor() {
+        this.connected = new EventEmitter()
+    }
 
     private socketUrl(): string {
-        return '';
+        const wsUrl: URL = new URL('ws', window.location.href)
+        wsUrl.protocol = wsUrl.protocol.replace(/^http/, 'ws');
+        return wsUrl.href;
     }
 
     private open(): void {
+        this.eventEmitter = new EventEmitter()
+
         const url: string = this.socketUrl();
         this.socket = new WebSocket(url);
 
-        this.socket.onopen = (e: Event) => {
 
+        this.socket.onopen = (e: Event) => {
+            this.connected.emit()
         };
 
+        this.socket.onmessage = (e: MessageEvent) => {
+            this.eventEmitter.next(e)
+        }
+
         this.socket.onerror = (e: Event) => {
-            this.subject.error(e);
+            this.eventEmitter.error(e);
         };
 
         this.socket.onclose = (e: CloseEvent) => {
-            this.subject.complete();
+            this.eventEmitter.complete();
             this.socket = undefined;
+            this.eventEmitter = undefined
         };
     }
 
-    send<T>(message: T): void {
-        if (this.socket && this.socket.readyState == WebSocket.OPEN) {
+    onOpen(listener: () => void): Subscription {
+        const subscription: Subscription = this.connected.subscribe(listener)
+        return subscription
+    }
+
+    subscribe(generatorOrNext?: any, error?: any, complete?: any): Subscription {
+        const subscription: Subscription = this.eventEmitter.subscribe(generatorOrNext, error, complete)
+        return subscription
+    }
+
+    send<T extends Message>(message: T): void {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             const data: string = JSON.stringify(message);
             this.socket.send(data);
         }
