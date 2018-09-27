@@ -17,8 +17,9 @@ type WebSocket struct {
 	OutBoundMessage chan string
 
 	// private
-	conn    *ws.Conn
-	closing chan bool
+	conn     *ws.Conn
+	closing  chan bool
+	outbound chan string
 }
 
 func NewWebSocket(id string, conn *ws.Conn) *WebSocket {
@@ -30,6 +31,7 @@ func NewWebSocket(id string, conn *ws.Conn) *WebSocket {
 		OutBoundMessage: make(chan string),
 		conn:            conn,
 		closing:         make(chan bool),
+		outbound:        make(chan string),
 	}
 
 	/*// set the close handler
@@ -76,7 +78,8 @@ func (webSocket *WebSocket) outBoundLoop() {
 
 	for {
 		select {
-		case message := <-webSocket.OutBoundMessage:
+		case message := <-webSocket.outbound:
+			webSocket.OutBoundMessage <- message
 			bytes := []byte(message)
 			err := webSocket.conn.WriteMessage(ws.TextMessage, bytes)
 			if err != nil {
@@ -91,7 +94,7 @@ func (webSocket *WebSocket) outBoundLoop() {
 }
 
 func (webSocket *WebSocket) Write(message string) {
-	webSocket.OutBoundMessage <- message
+	webSocket.outbound <- message
 }
 
 func (webSocket *WebSocket) Close() {

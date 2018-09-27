@@ -1,0 +1,36 @@
+<div class="ui-g">
+    <div class="ui-g-12">
+        <p-table [value]="entities" sortField="date" sortMode="single">
+            <ng-template pTemplate="header" let-entry>
+                <tr>
+                    <th [pSortableColumn]="'date'" style="width: 20%">
+                        Date
+                        <p-sortIcon [field]="'date'"></p-sortIcon>
+                    </th>
+                    <th [pSortableColumn]="'type'" style="width: 20%">
+                        Type
+                        <p-sortIcon [field]="'type'"></p-sortIcon>
+                    </th>
+                    <th>
+                        Message
+                    </th>
+                </tr>
+            </ng-template>
+            <ng-template pTemplate="body" let-entry>
+                <tr>
+                    <td>
+                        {{entry.date| date:'short'}}
+                    </td>
+                    <td>
+                        <app-debug-type [type]="entry.type"></app-debug-type>
+                    </td>
+                    <td>
+                        <small>
+                            <pre> {{entry.message}} </pre>
+                        </small>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>

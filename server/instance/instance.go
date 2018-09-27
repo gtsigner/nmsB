@@ -17,5 +17,8 @@ type ServerInstance struct {
 }
 
 func NewServerInstance(version string, release string) *ServerInstance {
-	return &ServerInstance{}
+	return &ServerInstance{
+		Version: version,
+		Release: release,
+	}
 }

@@ -18,8 +18,6 @@ export class WebSocketModule {
 
 export function initialize(webSocketService: WebSocketService) {
     return () => {
-        setTimeout(() => {
-            webSocketService.connect();
-        }, 1000);
+        webSocketService.connect();
     };
 }

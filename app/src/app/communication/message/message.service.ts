@@ -22,8 +22,11 @@ export class MessageService {
             this.webSocketService.onConnected(() => {
                 // register the callback handle for the messages
                 this.registerCallbackHandle();
-                // execute the handshake
-                this.handshake().then(resolve, reject);
+
+                setTimeout(() => {
+                    // execute the handshake
+                    this.handshake().then(resolve, reject);
+                }, 1000);
             });
         });
     }
@@ -73,7 +76,6 @@ export class MessageService {
         const message: Message = this.messageFactory.clientHandshakeMessage();
         const response: Message = await this.request(message);
         this.messageFactory.clientId = response.ClientId;
-        console.log(response)
     }
 
     send<T extends Message>(message: T): void {

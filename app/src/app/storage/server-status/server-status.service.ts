@@ -12,6 +12,7 @@ export class ServerStatusService {
     }
 
     update(serverStatus: ServerStatus): void {
+        console.log(serverStatus);
         this.subject.next(serverStatus);
     }
 

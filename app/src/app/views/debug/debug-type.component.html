@@ -1,0 +1,14 @@
+<div class="ui-g ui-g-nopad" [ngSwitch]="type">
+    <div class="ui-g-12 ui-g-nopad" *ngSwitchCase="DebugEntryType.DEBUG">
+        <p-message severity="info" [text]="type"></p-message>
+    </div>
+    <div class="ui-g-12 ui-g-nopad" *ngSwitchCase="DebugEntryType.ERROR">
+        <p-message severity="error" [text]="type"></p-message>
+    </div>
+    <div class="ui-g-12 ui-g-nopad" *ngSwitchCase="DebugEntryType.INFO">
+        <p-message severity="success" [text]="type"></p-message>
+    </div>
+    <div class="ui-g-12 ui-g-nopad" *ngSwitchCase="DebugEntryType.WARN">
+        <p-message severity="warn" [text]="type"></p-message>
+    </div>
+</div>

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subscription } from 'rxjs';
 import { DebugEntry } from './debug-entry';
 import { DebugEntryType } from './debug-entry-type';
 
@@ -11,7 +11,13 @@ export class DebugService {
 
     constructor() {
         this._count = 100;
-        this.subject = new BehaviorSubject([]);
+        this.subject = new BehaviorSubject([
+            {
+                date: new Date(),
+                type: DebugEntryType.DEBUG,
+                message: 'bla'
+            }
+        ]);
     }
 
     error(e: Error): void {
@@ -23,6 +29,10 @@ export class DebugService {
             date = new Date();
         }
         this.append({ date, message, type } as DebugEntry);
+    }
+
+    on(listener: (entities: DebugEntry[]) => void): Subscription {
+        return this.subject.subscribe(listener);
     }
 
     private append(entry: DebugEntry): void {

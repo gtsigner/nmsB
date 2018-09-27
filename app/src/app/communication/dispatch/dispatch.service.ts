@@ -43,6 +43,7 @@ export class DispatchService {
     }
 
     private error(error: Event): void {
+        console.error(error);
         this.debugService.notify(JSON.stringify(error), DebugEntryType.ERROR);
     }
 
@@ -51,6 +52,8 @@ export class DispatchService {
             this.debugService.error(new Error(`dispatcher received nil or empty message`));
             return;
         }
+
+        console.log(message);
 
         if (message.Type === MessageType.ERROR) {
             return this.errorHandler.handle(message);
