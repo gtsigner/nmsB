@@ -1,7 +1,7 @@
-import {WebSocketService} from "../websocket/websocket.service";
-import {Subscription} from "rxjs";
-import {Message} from "../message/message";
-import {MessageType} from "../message/message.type";
+import { Subscription } from 'rxjs';
+import { Message } from '../message/message';
+import { MessageType } from '../message/message.type';
+import { WebSocketService } from '../websocket/websocket.service';
 
 export class DispatchService {
 
@@ -13,20 +13,20 @@ export class DispatchService {
 
     private init(): void {
         this.webSocketService.onOpen(() => {
-            this.subscribe()
-        })
+            this.subscribe();
+        });
     }
 
     private subscribe(): void {
         this.subscription = this.webSocketService.subscribe((message: MessageEvent) => {
-            this.dispatch(message.data)
+            this.dispatch(message.data);
         }, (error: Event) => {
-            this.error(error)
+            this.error(error);
         }, () => {
             if (this.subscription) {
-                this.subscription.unsubscribe()
+                this.subscription.unsubscribe();
             }
-        })
+        });
     }
 
     private error(error: Event): void {
@@ -36,7 +36,7 @@ export class DispatchService {
     private dispatch(data: string): void {
         if (!data) {
             // TODO Handle error
-            return
+            return;
         }
         const message: Message = JSON.parse(data);
 

@@ -1,7 +1,7 @@
-import {Injectable} from "@angular/core";
-import {WebSocketService} from "../websocket/websocket.service";
-import {Message} from "./message";
-import {MessageFactoryService} from "./message-factory.service";
+import { Injectable } from '@angular/core';
+import { WebSocketService } from '../websocket/websocket.service';
+import { Message } from './message';
+import { MessageFactoryService } from './message-factory.service';
 
 @Injectable()
 export class MessageService {
@@ -12,14 +12,14 @@ export class MessageService {
 
     private init(): void {
         this.webSocketService.onOpen(() => {
-            this.handshake()
-        })
+            this.handshake();
+        });
 
     }
 
     handshake(): void {
-        const message: Message = this.messageFactory.clientHandshakeMessage()
-        this.webSocketService.send(message)
+        const message: Message = this.messageFactory.clientHandshakeMessage();
+        this.webSocketService.send(message);
     }
 
 }

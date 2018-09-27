@@ -1,5 +1,5 @@
-import {MessageType} from "./message.type";
-import {MessageDirection} from "./message.direction";
+import { MessageDirection } from './message.direction';
+import { MessageType } from './message.type';
 
 export interface Message {
     Type: MessageType
