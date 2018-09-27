@@ -3,4 +3,5 @@ export enum MessageType {
     CLIENT_HANDSHAKE = 'ClientHandshake',
     SERVER_STATUS = 'ServerStatus',
     ERROR = 'Error',
+    HANDSHAKE_ACK = 'HandshakeACK'
 }

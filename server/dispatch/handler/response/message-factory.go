@@ -15,10 +15,15 @@ func CreateMessage(messageType message.MessageType, direction message.MessageDir
 		return nil, err
 	}
 
+	msg := CreateMessageFor(messageType, direction, requestId)
+	return msg, nil
+}
+
+func CreateMessageFor(messageType message.MessageType, direction message.MessageDirection, requestId string) *message.Message {
 	return &message.Message{
 		RequestId: &requestId,
 		Direction: &direction,
 		Type:      &messageType,
 		ClientId:  &DefaultClientId,
-	}, nil
+	}
 }

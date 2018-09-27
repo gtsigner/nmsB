@@ -7,7 +7,7 @@ export class WebSocketService {
 
     private socket: WebSocket;
     private connected: EventEmitter<void>;
-    private eventEmitter: EventEmitter<MessageEvent>;
+    private eventEmitter: EventEmitter<any>;
 
     constructor() {
         this.connected = new EventEmitter();
@@ -19,7 +19,7 @@ export class WebSocketService {
         return wsUrl.href;
     }
 
-    private open(): void {
+    connect(): void {
         this.eventEmitter = new EventEmitter();
 
         const url: string = this.socketUrl();
@@ -31,7 +31,10 @@ export class WebSocketService {
         };
 
         this.socket.onmessage = (e: MessageEvent) => {
-            this.eventEmitter.next(e);
+            if (e.data) {
+                const message: any = JSON.parse(e.data);
+                this.eventEmitter.next(message);
+            }
         };
 
         this.socket.onerror = (e: Event) => {
@@ -45,7 +48,7 @@ export class WebSocketService {
         };
     }
 
-    onOpen(listener: () => void): Subscription {
+    onConnected(listener: () => void): Subscription {
         const subscription: Subscription = this.connected.subscribe(listener);
         return subscription;
     }
@@ -59,6 +62,12 @@ export class WebSocketService {
         if (this.socket && this.socket.readyState === WebSocket.OPEN) {
             const data: string = JSON.stringify(message);
             this.socket.send(data);
+        }
+    }
+
+    close(): void {
+        if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+            this.socket.close();
         }
     }
 

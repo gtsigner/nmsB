@@ -7,4 +7,5 @@ const (
 	ClientHandshake MessageType = "ClientHandshake"
 	ServerStatus    MessageType = "ServerStatus"
 	Error           MessageType = "Error"
+	HandshakeACK    MessageType = "HandshakeACK"
 )

@@ -7,7 +7,7 @@ import { MessageType } from './message.type';
 @Injectable()
 export class MessageFactoryService {
 
-    private cleintId: string;
+    private _clientId: string;
     private requestId: number;
 
     constructor() {
@@ -28,12 +28,15 @@ export class MessageFactoryService {
         return message;
     }
 
+    set clientId(id: string) {
+        this._clientId = id;
+    }
 
     private invoke<T extends Message>(message: T): T {
         const requestId: number = this.nextRequestId();
 
         message.RequestId = `${requestId}`;
-        message.ClientId = this.cleintId;
+        message.ClientId = this._clientId;
 
         return message;
     }
