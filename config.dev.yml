@@ -1,0 +1,3 @@
+Server:
+    ProcessName: notepad.exe
+    DllPath: ./dist/nmsB-windows-amd64.dll

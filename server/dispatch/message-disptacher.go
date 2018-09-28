@@ -32,6 +32,9 @@ func DispatchMessage(ctx *context.DispatchContext, webSocket *websocket.WebSocke
 	case message.ClientHandshake:
 		err := handler.ClientHandshakeHandler(ctx, webSocket, msg, data)
 		return err
+	case message.Inject:
+		err := handler.InjectHandler(ctx, webSocket, msg, data)
+		return err
 	}
 
 	// verify if message direction given

@@ -22,7 +22,7 @@ func start(instance *instance.ServerInstance) error {
 
 	log.Println("initiating server dispatcher")
 	// create the dispatch context
-	dispatchContext := context.CreateDispatchContext(instance.Version, instance.Release)
+	dispatchContext := context.CreateDispatchContext(instance.Version, instance.Release, cfg)
 	// create the dispatcher
 	instance.Dispatcher = dispatch.CreateDispacther(dispatchContext)
 

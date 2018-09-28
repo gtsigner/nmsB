@@ -50,6 +50,7 @@ func inspectConfigFile(directory string, fileName string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		// check if the config file exists
 		configExists, err := utils.FileExists(configFile)
 		if err != nil {
@@ -78,7 +79,7 @@ func configFiles() ([]string, error) {
 	}
 
 	// check if some directories found
-	if directories == nil || len(directories) > 0 {
+	if directories == nil || len(directories) < 1 {
 		return nil, nil
 	}
 

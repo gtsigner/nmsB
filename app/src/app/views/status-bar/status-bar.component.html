@@ -1,3 +1,21 @@
-{{serverStatus.clients}}
-<p-message text="Connected" severity="success"></p-message>
-<p-message text="Disconnected" severity="error"></p-message>
+<div class="ui-g ui-g-nopad">
+    <div class="ui-g-offset-7 ui-g-1">
+        Clients: {{serverStatus?.clients}}
+    </div>
+    <div class="ui-g-1">
+        Version: {{serverStatus?.version}}
+    </div>
+    <div class="ui-g-2">
+        Release: {{serverStatus?.release}}
+    </div>
+    <div class="ui-g-1" *ngIf="serverStatus?.connected">
+        <p-message text="Connected" severity="success"></p-message>
+    </div>
+    <div class="ui-g-1" *ngIf="!serverStatus?.connected">
+        <p-message text="Disconnected" severity="error"></p-message>
+    </div>
+</div>
+
+
+
+

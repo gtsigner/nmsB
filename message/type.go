@@ -6,6 +6,7 @@ const (
 	DllHandshake    MessageType = "DllHandshake"
 	ClientHandshake MessageType = "ClientHandshake"
 	ServerStatus    MessageType = "ServerStatus"
-	Error           MessageType = "Error"
+	Debug           MessageType = "Debug"
 	HandshakeACK    MessageType = "HandshakeACK"
+	Inject          MessageType = "Inject"
 )

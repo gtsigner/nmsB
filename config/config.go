@@ -1,5 +1,6 @@
 package config
 
 type Config struct {
-	Http *HttpConfig
+	Http   *HttpConfig
+	Server *ServerConfig
 }

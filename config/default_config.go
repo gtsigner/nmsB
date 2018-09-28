@@ -6,8 +6,19 @@ import (
 
 func DefaultConfig() *Config {
 	httpConfig := DefaultsHttpConfig()
+	serverConfig := DefaultServerConfig()
 	return &Config{
-		Http: httpConfig,
+		Http:   httpConfig,
+		Server: serverConfig,
+	}
+}
+
+func DefaultServerConfig() *ServerConfig {
+	dllPath := "./nms.dll"
+	processName := "nms.exe"
+	return &ServerConfig{
+		DllPath:     &dllPath,
+		ProcessName: &processName,
 	}
 }
 

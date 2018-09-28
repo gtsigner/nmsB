@@ -1,9 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { ControlViewComponent } from './views/control/control-view.component';
 import { DebugViewComponent } from './views/debug/debug-view.component';
 
 const routes: Routes = [
-    { path: 'debug', component: DebugViewComponent }
+    { path: 'debug', component: DebugViewComponent },
+    { path: 'control', component: ControlViewComponent }
     // { path: '', redirectTo: 'debug', pathMatch: 'full' }
 ];
 

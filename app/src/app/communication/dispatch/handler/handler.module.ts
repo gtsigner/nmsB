@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { DebugModule } from '../../../storage/debug/debug.module';
 import { ServerStatusModule } from '../../../storage/server-status/server-status.module';
-import { ErrorHandler } from './error-handler';
+import { DebugHandler } from './debug-handler';
 import { ServerStatusHandler } from './server-status-handler';
 
 @NgModule({
@@ -10,7 +10,7 @@ import { ServerStatusHandler } from './server-status-handler';
         ServerStatusModule
     ],
     providers: [
-        ErrorHandler,
+        DebugHandler,
         ServerStatusHandler
     ]
 })

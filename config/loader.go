@@ -26,7 +26,7 @@ func readConfigFiles(config *Config) (*Config, error) {
 	}
 
 	// check if some config files exists
-	if allConfigFiles == nil || len(allConfigFiles) > 0 {
+	if allConfigFiles == nil || len(allConfigFiles) < 1 {
 		return config, nil
 	}
 

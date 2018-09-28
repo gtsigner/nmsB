@@ -1,0 +1,23 @@
+<div class="ui-g">
+    <div class="ui-g-4">
+        Injected:
+    </div>
+    <div class="ui-g-4" *ngIf="serverStatus?.connected">
+        Yes
+    </div>
+    <div class="ui-g-4" *ngIf="!serverStatus?.connected">
+        No
+    </div>
+</div>
+
+<div class="ui-g">
+    <div class="ui-g-4">
+        Connect
+    </div>
+    <div class="ui-g-4" *ngIf="!serverStatus?.connected">
+        <button type="button" class="ui-button-success" pButton label="Injected" (click)="inject()"></button>
+    </div>
+    <div class="ui-g-4" *ngIf="serverStatus?.connected">
+        <button type="button" class="ui-button-danger" pButton label="UnInject"></button>
+    </div>
+</div>

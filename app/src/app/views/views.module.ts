@@ -2,6 +2,8 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
 import { MenubarModule } from 'primeng/menubar';
+import { TabMenuModule } from 'primeng/primeng';
+import { ControlViewModule } from './control/control-view.module';
 import { DebugViewModule } from './debug/debug-view.module';
 import { StatusBarModule } from './status-bar/status-bar.module';
 import { ViewsComponent } from './views.component';
@@ -13,7 +15,9 @@ import { ViewsComponent } from './views.component';
         BrowserModule,
         // primeng
         MenubarModule,
+        TabMenuModule,
         // custom
+        ControlViewModule,
         DebugViewModule,
         StatusBarModule
     ],

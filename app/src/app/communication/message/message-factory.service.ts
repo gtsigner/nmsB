@@ -28,6 +28,14 @@ export class MessageFactoryService {
         return message;
     }
 
+    injectMessage(): Message {
+        const message: ClientHandshakeMessage = this.invoke({
+            Direction: MessageDirection.CLIENT_2_SERVER,
+            Type: MessageType.INJECT
+        } as ClientHandshakeMessage);
+        return message;
+    }
+
     set clientId(id: string) {
         this._clientId = id;
     }

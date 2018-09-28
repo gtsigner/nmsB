@@ -19,6 +19,16 @@ export class ViewsComponent implements OnInit {
             {
                 label: 'Debug',
                 routerLink: ['debug']
+            },
+            {
+                label: 'Map'
+            },
+            {
+                label: 'Bot'
+            },
+            {
+                label: 'Control',
+                routerLink: ['control']
             }
         ];
     }
