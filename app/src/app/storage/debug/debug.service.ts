@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subscription } from 'rxjs';
 import { DebugEntry } from './debug-entry';
 import { DebugEntryType } from './debug-entry-type';
+import { MessageService } from 'primeng/api';
 
 @Injectable()
 export class DebugService {
@@ -9,15 +10,9 @@ export class DebugService {
     private _count: number;
     private subject: BehaviorSubject<DebugEntry[]>;
 
-    constructor() {
+    constructor(private messageService:MessageService) {
         this._count = 100;
-        this.subject = new BehaviorSubject([
-            {
-                date: new Date(),
-                type: DebugEntryType.DEBUG,
-                message: 'bla'
-            }
-        ]);
+        this.subject = new BehaviorSubject([]);
     }
 
     error(e: Error): void {
@@ -28,7 +23,25 @@ export class DebugService {
         if (!date) {
             date = new Date();
         }
-        this.append({ date, message, type } as DebugEntry);
+        const entry:DebugEntry = { date, message, type } as DebugEntry
+        this.append(entry);
+        this.pushMessage(entry)
+    }
+
+    private pushMessage(entry:DebugEntry): void {
+        if(entry.type === DebugEntryType.ERROR){
+            this.messageService.add({
+                severity: 'error',
+                summary:'Error',
+                detail: entry.message
+            })
+        }else if(entry.type === DebugEntryType.INFO){
+            this.messageService.add({
+                severity: 'info',
+                summary:'Info',
+                detail: entry.message
+            })
+        }
     }
 
     on(listener: (entities: DebugEntry[]) => void): Subscription {

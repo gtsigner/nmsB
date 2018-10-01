@@ -15,10 +15,12 @@ func DefaultConfig() *Config {
 
 func DefaultServerConfig() *ServerConfig {
 	dllPath := "./nms.dll"
+	initProcName := "Init"
 	processName := "nms.exe"
 	return &ServerConfig{
-		DllPath:     &dllPath,
-		ProcessName: &processName,
+		DllPath:      &dllPath,
+		ProcessName:  &processName,
+		InitProcName: &initProcName,
 	}
 }
 

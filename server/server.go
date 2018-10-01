@@ -5,13 +5,21 @@ import (
 
 	"../config"
 	"../sys/signal"
+	"../sys/win"
 	"./dispatch"
 	"./dispatch/context"
 	"./http"
+	"./inject"
 	"./instance"
 )
 
 func start(instance *instance.ServerInstance) error {
+	// get the debug privilege for inject
+	err := win.EnableDebugPrivilege()
+	if err != nil {
+		return err
+	}
+
 	log.Println("loading configuration files")
 	// load configuration
 	cfg, err := config.Load()
@@ -20,9 +28,17 @@ func start(instance *instance.ServerInstance) error {
 	}
 	instance.Config = cfg
 
+	// creating dll injector
+	instance.Injector = inject.CreateInjector(cfg)
+	// initlize Injector
+	err = instance.Injector.Init()
+	if err != nil {
+		return err
+	}
+
 	log.Println("initiating server dispatcher")
 	// create the dispatch context
-	dispatchContext := context.CreateDispatchContext(instance.Version, instance.Release, cfg)
+	dispatchContext := context.CreateDispatchContext(instance.Version, instance.Release, cfg, instance.Injector)
 	// create the dispatcher
 	instance.Dispatcher = dispatch.CreateDispacther(dispatchContext)
 

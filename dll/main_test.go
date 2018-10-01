@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"../win"
-	"../win/dll"
-	"../win/process"
+	"../sys/win"
+	"../sys/win/dll"
+	"../sys/win/process"
 )
 
 var (

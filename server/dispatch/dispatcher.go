@@ -22,15 +22,15 @@ func (dispatcher *Dispatcher) dispatch() {
 	for {
 		select {
 		case e := <-webSocketManager.OnOpen:
-			dispatcher.onOpen(e)
+			go dispatcher.onOpen(e)
 		case e := <-webSocketManager.OnError:
-			dispatcher.onError(e)
+			go dispatcher.onError(e)
 		case e := <-webSocketManager.OnClose:
-			dispatcher.onClose(e)
+			go dispatcher.onClose(e)
 		case e := <-webSocketManager.InBoundMessage:
-			dispatcher.onMessage(e)
+			go dispatcher.onMessage(e)
 		case e := <-webSocketManager.OutBoundMessage:
-			dispatcher.onOutMessage(e)
+			go dispatcher.onOutMessage(e)
 		case <-dispatcher.closing:
 			return
 		}

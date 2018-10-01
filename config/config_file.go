@@ -91,6 +91,7 @@ func configFiles() ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		// append if config files available
 		if directoryConfigFiles != nil && len(directoryConfigFiles) > 0 {
 			configFiles = append(configFiles, directoryConfigFiles...)

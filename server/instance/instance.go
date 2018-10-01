@@ -5,6 +5,7 @@ import (
 	"../dispatch"
 	"../dispatch/context"
 	"../http"
+	"../inject"
 )
 
 type ServerInstance struct {
@@ -12,6 +13,7 @@ type ServerInstance struct {
 	Release        string
 	Config         *config.Config
 	HttpServer     *http.HttpServer
+	Injector       *inject.Injector
 	Dispatcher     *dispatch.Dispatcher
 	DispactContext *context.DispatchContext
 }

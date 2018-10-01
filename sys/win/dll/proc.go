@@ -8,7 +8,6 @@ import "C"
 
 import (
 	"fmt"
-	"log"
 	"path/filepath"
 	"unsafe"
 
@@ -18,13 +17,7 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-func CallRemoteProc(handle windows.Handle, dllPath string, procName string, parameter string) error {
-	// get the rmote address of the given dll
-	procAddress, err := GetRemoteProcAddress(handle, dllPath, procName)
-	if err != nil {
-		return err
-	}
-
+func CallRemoteProc(handle windows.Handle, procAddress uintptr, parameter string) error {
 	// convert the parameter toa CString
 	cParameter := C.CString(parameter)
 	// free the CString after usage
@@ -51,9 +44,9 @@ func CallRemoteProc(handle windows.Handle, dllPath string, procName string, para
 		return fmt.Errorf("fail to create remote thread, because %s", err.Error())
 	}
 	// close the thread handle
-	defer windows.CloseHandle(thread)
+	err = windows.CloseHandle(thread)
 
-	return nil
+	return err
 }
 
 func GetRemoteProcAddress(handle windows.Handle, dllPath string, procName string) (uintptr, error) {
@@ -84,16 +77,10 @@ func GetProcAddressOffsetFrom(dllPath string, procName string) (uintptr, error) 
 
 	procPtr, err := windows.GetProcAddress(handle, procName)
 	if err != nil {
-		log.Println(dllPath, "error")
 		return 0, err
 	}
 
 	offset := procPtr - uintptr(handle)
-
-	err = windows.FreeLibrary(handle)
-	if err != nil {
-		return 0, err
-	}
 
 	return offset, nil
 }
