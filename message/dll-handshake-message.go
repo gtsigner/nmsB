@@ -1,7 +1,7 @@
 package message
 
 type DllHandshakeMessage struct {
-	Message
+	*Message
 	Version *string
 	Release *string
 }

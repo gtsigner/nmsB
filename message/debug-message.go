@@ -10,7 +10,7 @@ const (
 )
 
 type DebugMessage struct {
-	Message
+	*Message
 	DebugType *DebugType
 	Text      *string
 }

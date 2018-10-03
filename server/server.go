@@ -81,10 +81,10 @@ func shutdown(instance *instance.ServerInstance) error {
 func Run(version string, release string) error {
 	log.Printf("starting server [ version: %s, release: %s ]", version, release)
 	// create the server instance
-	instance := instance.NewServerInstance(version, release)
+	serverInstance := instance.NewServerInstance(version, release)
 
 	// start the server
-	err := start(instance)
+	err := start(serverInstance)
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func Run(version string, release string) error {
 	log.Printf("Shutdown server...")
 
 	// shutdown the server
-	err = shutdown(instance)
+	err = shutdown(serverInstance)
 	if err != nil {
 		return err
 	}

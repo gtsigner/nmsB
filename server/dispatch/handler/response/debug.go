@@ -32,7 +32,7 @@ func PushDebugMessage(ctx *context.DispatchContext, text string, debugType messa
 	}
 
 	msg := &message.DebugMessage{
-		Message:   *baseMessage,
+		Message:   baseMessage,
 		Text:      &text,
 		DebugType: &debugType,
 	}

@@ -14,4 +14,6 @@ const (
 	ServerToClients MessageDirection = "s2cs"
 	/*ServerToClient is a message direction from server to a client */
 	ServerToClient MessageDirection = "s2c"
+	/*DllToServer is a message direction from dll to the server */
+	DllToServer MessageDirection = "d2s"
 )

@@ -11,7 +11,7 @@ OUTPUT_DIR = $(CURDIR)/dist
 SERVER_FILES = $(CURDIR)/server/main/main.go
 
 # DLL Files
-DLL_FILES = dll/main.go
+DLL_FILES = $(CURDIR)/dll/main/main.go
 
 # GO commands
 GO			= go

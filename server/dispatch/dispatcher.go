@@ -68,7 +68,4 @@ func (dispatcher *Dispatcher) onOutMessage(event websocket.OutBoundMessageEvent)
 
 func (dispatcher *Dispatcher) Close() {
 	dispatcher.closing <- true
-	go func() {
-		dispatcher.closing <- true
-	}()
 }
