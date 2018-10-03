@@ -11,5 +11,4 @@ func CreateClient(cfg *config.Config) *Client {
 		OnOpen:    make(chan bool),
 		OnMessage: make(chan string),
 	}
-
 }
