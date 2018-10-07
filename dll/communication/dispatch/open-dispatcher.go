@@ -1,6 +1,9 @@
 package dispatch
 
 import (
+	"fmt"
+	"log"
+
 	"../../../message"
 	"../context"
 )
@@ -17,21 +20,38 @@ func createHandshakeMessage(context *context.DispatchContext) *message.DllHandsh
 	return msg
 }
 
-func dispatchWebSocketOpen(context *context.DispatchContext) error {
+func dispatchWebSocketOpen(ctx *context.DispatchContext) error {
+	log.Println("websocket connection to server established")
 	// create the handshake message
-	handshakeMessage := createHandshakeMessage(context)
+	handshakeMessage := createHandshakeMessage(ctx)
 
 	// send handshake request and wait for response
 	var response message.Message
-	err := context.RequestManager.RequestEncode(*handshakeMessage.RequestId, handshakeMessage, &response)
+	err := ctx.RequestManager.RequestEncode(*handshakeMessage.RequestId, handshakeMessage, &response)
 	if err != nil {
 		return err
 	}
 
+	// check if message type responsed
+	if response.Type == nil {
+		return fmt.Errorf("unable to acknowledged handshake, because server responsed with nil message-type")
+	}
+
+	// check if message-type is ack
+	if *response.Type != message.HandshakeACK {
+		return fmt.Errorf("unable to acknowledged handshake, because server responsed with message-type [ %s ]", *response.Type)
+	}
+
+	log.Println("server responsed with acknowledged handshake")
+
 	// check if client id responsed
 	if response.ClientId != nil {
-		context.RequestManager.SetClientId(*response.ClientId)
+		log.Printf("handshake successed with client-id [ %s ]", *response.ClientId)
+		ctx.RequestManager.SetClientId(*response.ClientId)
 	}
+
+	// notify about connected
+	ctx.Connected <- true
 
 	return nil
 }

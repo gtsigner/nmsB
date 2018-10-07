@@ -85,12 +85,8 @@ func (manager *RequestManager) NextRequestID() string {
 func (manager *RequestManager) Request(requestId string, v interface{}) (string, error) {
 	// lock the manager for Request
 	manager.lock.Lock()
-	defer func() {
-		// remove the pending request
-		delete(manager.pending, requestId)
-		// unlock the manager
-		manager.lock.Unlock()
-	}()
+	// unlock the manager
+	defer manager.lock.Unlock()
 
 	// request the callback
 	callback := make(chan string, 1)
@@ -101,8 +97,16 @@ func (manager *RequestManager) Request(requestId string, v interface{}) (string,
 	if err != nil {
 		return "", err
 	}
+
+	// unlock the manager to wait for the response
+	manager.lock.Unlock()
 	// wait for the response
 	responseDate := <-callback
+	// lock the manager to handle the response
+	manager.lock.Lock()
+
+	// remove the pending request
+	delete(manager.pending, requestId)
 
 	return responseDate, err
 }

@@ -1,3 +1,4 @@
+development: true
 server:
     process-name: notepad.exe
     dll-path: ./dist/nmsB-windows-amd64.dll

@@ -12,7 +12,7 @@ func ClientHandshakeHandler(ctx *context.DispatchContext, webSocket *websocket.W
 	ctx.ConnectionManager.RegisterClient(webSocket)
 
 	// acknowledge the handshake
-	err := response.PushHandshakeACK(ctx, webSocket, msg)
+	err := response.PushHandshakeACKToClient(ctx, webSocket, msg)
 	if err != nil {
 		return err
 	}

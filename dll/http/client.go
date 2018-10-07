@@ -37,7 +37,6 @@ func (client *Client) serverUrl() (*url.URL, error) {
 	}
 
 	host := fmt.Sprintf("%s:%d", "127.0.0.1", *cfg.Http.Port)
-	log.Println(host)
 
 	u := &url.URL{
 		Scheme: "ws",
@@ -69,8 +68,11 @@ func (client *Client) Init() error {
 	if err != nil {
 		return err
 	}
+
 	// create a new websocket
 	client.webSocket = websocket.NewWebSocket()
+
+	log.Printf("connecting to server at [ %s ]", u.String())
 	// connect to the server
 	err = client.webSocket.Connect(u)
 	if err != nil {

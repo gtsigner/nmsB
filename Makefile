@@ -18,6 +18,7 @@ GO			= go
 GOGET		= $(GO) get
 GOBUILD		= $(GO) build
 GOTEST		= $(GO) test
+GORUN 		= $(GO) run
 GOFMT		= gofmt
 _GOOS		= windows
 _GOARCH		= amd64
@@ -50,6 +51,9 @@ release: build-server build-dll
 
 # +++ Server +++
 
+run-server:
+	$(GORUN) $(SERVER_FILES)
+
 build-server: BUILD_MODE = exe
 build-server: INPUT = $(SERVER_FILES)
 build-server: OUTPUT = $(OUTPUT_DIR)/$(OUTPUT_NAME).exe
@@ -57,6 +61,9 @@ build-server:
 	$(MAKE) BUILD_MODE="$(BUILD_MODE)" GO_LD_FLAGS="$(GO_LD_FLAGS)" OUTPUT="$(OUTPUT)" INPUT="$(INPUT)" build
 
 # +++ Dll +++
+
+run-dll:
+	$(GORUN) $(DLL_FILES)
 
 build-dll: BUILD_MODE = c-shared
 build-dll: INPUT = $(DLL_FILES)

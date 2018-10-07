@@ -1,6 +1,8 @@
 package dll
 
 import (
+	"log"
+
 	"../config"
 	"../message/json"
 	"./communication/context"
@@ -21,6 +23,7 @@ func loadConfig(parameter string) (*config.Config, error) {
 func start(dllInstance *instance.DllInstance) error {
 	// create the client
 	client := http.CreateClient(dllInstance.Config)
+
 	// create the dispatch context
 	dllInstance.DispatchContext = context.CreateDispatchContext(dllInstance.Version, dllInstance.Release, dllInstance.Config, client)
 	// create the dispatcher
@@ -31,6 +34,13 @@ func start(dllInstance *instance.DllInstance) error {
 	if err != nil {
 		return err
 	}
+
+	log.Println("waiting for connection established")
+	// wait for connected
+	<-dllInstance.DispatchContext.Connected
+
+	// notify about connected dll
+	dllInstance.DispatchContext.Debug.Info("dll successful connected to server")
 
 	return nil
 }
@@ -50,6 +60,7 @@ func shutdown(dllInstance *instance.DllInstance) error {
 }
 
 func Run(version string, release string, parameter string) error {
+	log.Printf("starting dll [ version: %s, release: %s ]", version, release)
 	// create the dll instance
 	dllInstance := instance.NewDllInstance(version, release)
 
