@@ -1,13 +1,17 @@
 package modules
 
 import (
+	"log"
+
 	"../api"
 	"golang.org/x/sys/windows"
 )
 
 type Module struct {
-	Handle windows.Handle
-	Name   string
+	Handle     windows.Handle
+	Name       string
+	Size       uint32
+	EntryPoint uintptr
 }
 
 func Get(handle windows.Handle) ([]Module, error) {
@@ -34,10 +38,19 @@ func Get(handle windows.Handle) ([]Module, error) {
 			return nil, err
 		}
 		name := windows.UTF16ToString(buffer[:n])
+
+		info, err := api.GetModuleInformation(handle, module)
+		if err != nil {
+			return nil, err
+		}
+		log.Printf("%s  0x%x 0x%x %d", name, module, info.BaseOfDll, info.SizeOfImage)
+
 		// append the module
 		modules = append(modules, Module{
-			Handle: module,
-			Name:   name,
+			Handle:     module,
+			Name:       name,
+			Size:       uint32(info.SizeOfImage),
+			EntryPoint: uintptr(info.EntryPoint),
 		})
 	}
 

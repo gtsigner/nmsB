@@ -1,13 +1,14 @@
 package modules
 
 import (
-	"../process"
 	"log"
 	"testing"
+
+	"../process"
 )
 
 func TestGet(t *testing.T) {
-	p, err := process.FindProcess("go.exe")
+	p, err := process.FindProcess("notepad.exe")
 
 	if err != nil {
 		t.Errorf(err.Error())
@@ -47,12 +48,9 @@ func TestGet(t *testing.T) {
 		t.Fatal("modules for the process go.exe are empty")
 		return
 	}
-
-	x := 2
-	value := 2 + x
-
+	
 	for _, module := range modules {
-		log.Printf("%s: 0x%X, %X, %d", module.Name, module.Handle, &value, uint32(module.Handle)-uint32(uintptr(value)))
+		log.Printf("%s Base: 0x%X Size: %d", module.Name, module.Handle, module.Size)
 	}
 
 }

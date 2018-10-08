@@ -13,7 +13,9 @@ var (
 	modkernel32 = windows.NewLazySystemDLL("kernel32.dll")
 
 	//load func [kernel32.dll]
+	procVirtualQuery       = modkernel32.NewProc("VirtualQuery")
 	procVirtualFreeEx      = modkernel32.NewProc("VirtualFreeEx")
+	procVirtualQueryEx     = modkernel32.NewProc("VirtualQueryEx")
 	procVirtualAllocEx     = modkernel32.NewProc("VirtualAllocEx")
 	procGetModuleHandleW   = modkernel32.NewProc("GetModuleHandleW")
 	procGetExitCodeThread  = modkernel32.NewProc("GetExitCodeThread")
@@ -109,6 +111,44 @@ func VirtualAllocEx(handle windows.Handle, address uintptr, size uint32, allocty
 		}
 	}
 	return value, nil
+}
+
+func VirtualQuery(address uintptr) (*MemoryInformation, error) {
+	var memoryInfo MemoryInformation
+	r0, _, e1 := syscall.Syscall(procVirtualQuery.Addr(),
+		3,
+		address,
+		uintptr(unsafe.Pointer(&memoryInfo)),
+		uintptr(unsafe.Sizeof(memoryInfo)))
+
+	if r0 == 0 {
+		if e1 != 0 {
+			return nil, errnoErr(e1)
+		} else {
+			return nil, syscall.EINVAL
+		}
+	}
+	return &memoryInfo, nil
+}
+
+func VirtualQueryEx(handle windows.Handle, address uintptr) (*MemoryInformation, error) {
+	var memoryInfo MemoryInformation
+	r0, _, e1 := syscall.Syscall6(procVirtualQueryEx.Addr(),
+		4,
+		uintptr(handle),
+		address,
+		uintptr(unsafe.Pointer(&memoryInfo)),
+		uintptr(unsafe.Sizeof(memoryInfo)),
+		0,
+		0)
+	if r0 == 0 {
+		if e1 != 0 {
+			return nil, errnoErr(e1)
+		} else {
+			return nil, syscall.EINVAL
+		}
+	}
+	return &memoryInfo, nil
 }
 
 func VirtualFreeEx(handle windows.Handle, address uintptr, size uint32, freeType uint32) error {

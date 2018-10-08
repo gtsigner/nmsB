@@ -12,8 +12,9 @@ var (
 	modpsapi = windows.NewLazySystemDLL("psapi.dll")
 
 	//load func [psapi.dll]
-	procGetModuleBaseName  = modpsapi.NewProc("GetModuleBaseNameW")
-	procEnumProcessModules = modpsapi.NewProc("EnumProcessModules")
+	procGetModuleBaseName    = modpsapi.NewProc("GetModuleBaseNameW")
+	procEnumProcessModules   = modpsapi.NewProc("EnumProcessModules")
+	procGetModuleInformation = modpsapi.NewProc("GetModuleInformation")
 )
 
 func EnumProcessModules(process windows.Handle, modules []windows.Handle) (int, error) {
@@ -65,4 +66,26 @@ func GetModuleBaseName(process windows.Handle, module windows.Handle, moduleName
 	}
 
 	return int(r1), nil
+}
+
+func GetModuleInformation(process windows.Handle, module windows.Handle) (*ModuleInfo, error) {
+	var moduleInfo ModuleInfo
+	r1, _, e1 := syscall.Syscall6(procGetModuleInformation.Addr(),
+		4,
+		uintptr(process),
+		uintptr(module),
+		uintptr(unsafe.Pointer(&moduleInfo)),
+		uintptr(unsafe.Sizeof(moduleInfo)),
+		0,
+		0,
+	)
+
+	if r1 == 0 {
+		if e1 != 0 {
+			return nil, errnoErr(e1)
+		}
+		return nil, syscall.EINVAL
+	}
+
+	return &moduleInfo, nil
 }
