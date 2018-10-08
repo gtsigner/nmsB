@@ -12,6 +12,7 @@ import (
 )
 
 type Client struct {
+	running    bool
 	connected  bool
 	config     *config.Config
 	closing    chan bool
@@ -78,54 +79,60 @@ func (client *Client) Close() {
 }
 
 func (client *Client) forwarder() {
-	i := 0
-	for {
-		i = i + 1
-		log.Println("next", i)
-		if client.webSocket != nil {
-			client.forwarderAll()
-			log.Println("done", i)
-			continue
+	// defer the exit hook
+	defer client.dispose()
+	// set the client to running
+	client.running = true
+
+	// loop until cleitn running
+	for client.running {
+		// check if the client is connected
+		if client.connected {
+			// forward all events
+			ok := client.forwarderAll()
+			// check if all events ok
+			if ok {
+				continue
+			}
+			// exit if event closed
+			return
 		}
 
+		// dispatch events if not connected
 		select {
-		// only for init
 		case <-client.connecting:
 			client.doConnect()
-			log.Println("doConnect2")
+		case data := <-client.writing:
+			client.doWrite(data)
 		case <-client.closing:
 			client.onClose()
-			log.Println("onClose2")
+			return
 		}
-		log.Println("done", i)
 	}
 }
 
-func (client *Client) forwarderAll() {
+func (client *Client) forwarderAll() bool {
 	select {
 	// websocket
 	case e := <-client.webSocket.InBoundMessage:
 		client.OnMessage <- e
-		log.Println("InBoundMessage")
 	case e := <-client.webSocket.OutBoundMessage:
 		client.onOutBoundMessage(e)
-		log.Println("OutBoundMessage")
 	case e := <-client.webSocket.OnError:
 		client.OnError <- e
-		log.Println("OnError")
 	case <-client.webSocket.OnClose:
 		client.onWebSocketClosed()
 	// internal
 	case <-client.connecting:
 		client.doConnect()
-		log.Println("doConnect")
 	case data := <-client.writing:
 		client.doWrite(data)
-		log.Println("doWrite")
 	case <-client.closing:
 		client.onClose()
-		log.Println("onClose")
+		return false
 	}
+
+	return true
 }
 
 func (client *Client) connect() error {
@@ -154,10 +161,13 @@ func (client *Client) connect() error {
 }
 
 func (client *Client) doWrite(data string) {
-	if client.webSocket != nil {
-		// write the message
-		client.webSocket.Write(data)
+	// check if connected
+	if client.webSocket == nil || !client.connected {
+		return
 	}
+
+	// write the message
+	client.webSocket.Write(data)
 }
 
 func (client *Client) doConnect() {
@@ -165,23 +175,27 @@ func (client *Client) doConnect() {
 	if client.connected {
 		return
 	}
-	// trigger connected
+
+	// executue connect
 	err := client.connect()
-	if err != nil {
-		// get the server url
-		u, e := client.serverUrl()
-		if e != nil {
-			// forwared the error
-			client.OnError <- e
-			log.Printf("fail to get server endpoint url, because %s", e.Error())
-			return
-		}
-		// forwared the error
-		client.OnError <- err
-		log.Printf("failed to connect to server endpoint [ %s ], because %s", u.String(), err.Error())
-		// trigger reconnect
-		go client.triggerReconnect()
+	if err == nil {
+		return
 	}
+
+	// get the server url
+	u, e := client.serverUrl()
+	if e != nil {
+		// forwared the error
+		client.OnError <- e
+		log.Printf("fail to get server endpoint url, because %s", e.Error())
+		return
+	}
+
+	// forwared the error
+	client.OnError <- err
+	log.Printf("failed to connect to server endpoint [ %s ], because %s", u.String(), err.Error())
+	// trigger reconnect
+	go client.triggerReconnect()
 }
 
 func (client *Client) onOutBoundMessage(message string) {
@@ -189,30 +203,34 @@ func (client *Client) onOutBoundMessage(message string) {
 }
 
 func (client *Client) onWebSocketClosed() {
-	log.Println("ttt")
+	// check if cleint already disconnected
 	if !client.connected {
 		return
 	}
+
+	// disconnect and mark as not connected
 	client.webSocket = nil
 	client.connected = false
 	log.Println("underlying socket closed, trigger reconnected")
+	// execute the reconnect
 	go client.triggerReconnect()
 }
 
 func (client *Client) triggerReconnect() {
 	log.Println("trigger reconnecting...")
 	time.Sleep(time.Second * 5)
-	log.Println("before")
 	client.connecting <- true
+}
 
-	log.Println("after")
+func (client *Client) dispose() {
+	client.OnClose <- true
 }
 
 func (client *Client) onClose() {
 	log.Println("closing client...")
-	client.OnClose <- true
-	client.connected = false
-	if client.webSocket != nil {
+	client.running = false
+	// check if cleint connected
+	if client.webSocket != nil && client.connected {
 		client.webSocket.Close()
 	}
 }

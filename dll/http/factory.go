@@ -5,6 +5,7 @@ import "../../config"
 func CreateClient(cfg *config.Config) *Client {
 	return &Client{
 		config:    cfg,
+		running:   false,
 		connected: false,
 		// internal
 		closing:    make(chan bool),
