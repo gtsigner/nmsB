@@ -1,8 +1,6 @@
 package modules
 
 import (
-	"log"
-
 	"../api"
 	"golang.org/x/sys/windows"
 )
@@ -29,29 +27,12 @@ func Get(handle windows.Handle) ([]Module, error) {
 	}
 
 	modules := make([]Module, 0)
-	// buffer for length of the module name
-	buffer := make([]uint16, 255)
-	for _, module := range moduleHandles {
-		// get the module name
-		n, err := api.GetModuleBaseName(handle, module, &buffer[0], uint32(len(buffer)))
+	for _, moduleHandle := range moduleHandles {
+		mod, err := module(handle, moduleHandle)
 		if err != nil {
 			return nil, err
 		}
-		name := windows.UTF16ToString(buffer[:n])
-
-		info, err := api.GetModuleInformation(handle, module)
-		if err != nil {
-			return nil, err
-		}
-		log.Printf("%s  0x%x 0x%x %d", name, module, info.BaseOfDll, info.SizeOfImage)
-
-		// append the module
-		modules = append(modules, Module{
-			Handle:     module,
-			Name:       name,
-			Size:       uint32(info.SizeOfImage),
-			EntryPoint: uintptr(info.EntryPoint),
-		})
+		modules = append(modules, *mod)
 	}
 
 	return modules, nil
@@ -70,4 +51,46 @@ func Find(handle windows.Handle, name string) (*Module, error) {
 	}
 
 	return nil, nil
+}
+
+func module(handle windows.Handle, module windows.Handle) (*Module, error) {
+	buffer := make([]uint16, 255)
+	// get the module name
+	n, err := api.GetModuleBaseName(handle, module, &buffer[0], uint32(len(buffer)))
+	if err != nil {
+		return nil, err
+	}
+	moduleName := windows.UTF16ToString(buffer[:n])
+
+	// get the module information
+	info, err := api.GetModuleInformation(handle, module)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Module{
+		Handle:     module,
+		Name:       moduleName,
+		Size:       uint32(info.SizeOfImage),
+		EntryPoint: uintptr(info.EntryPoint),
+	}, nil
+}
+
+func GetModule(handle windows.Handle, name string) (*Module, error) {
+	moduleHandle, err := api.GetModuleHandle(name)
+	if err != nil {
+		return nil, err
+	}
+
+	mod, err := module(handle, moduleHandle)
+	return mod, err
+}
+
+func GetProcessModule(name string) (*Module, error) {
+	handle, err := windows.GetCurrentProcess()
+	if err != nil {
+		return nil, err
+	}
+	mod, err := GetModule(handle, name)
+	return mod, err
 }

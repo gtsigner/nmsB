@@ -17,6 +17,7 @@ var (
 	procVirtualFreeEx      = modkernel32.NewProc("VirtualFreeEx")
 	procVirtualQueryEx     = modkernel32.NewProc("VirtualQueryEx")
 	procVirtualAllocEx     = modkernel32.NewProc("VirtualAllocEx")
+	procVirtualProtectEx   = modkernel32.NewProc("VirtualProtectEx")
 	procGetModuleHandleW   = modkernel32.NewProc("GetModuleHandleW")
 	procGetExitCodeThread  = modkernel32.NewProc("GetExitCodeThread")
 	procReadProcessMemory  = modkernel32.NewProc("ReadProcessMemory")
@@ -51,7 +52,10 @@ func GetFreeLibrary() (uintptr, error) {
 }
 
 func GetModuleHandle(name string) (windows.Handle, error) {
-	namePtr := syscall.StringToUTF16Ptr(name)
+	var namePtr *uint16
+	if name != "" {
+		namePtr = syscall.StringToUTF16Ptr(name)
+	}
 
 	r0, _, e1 := syscall.Syscall(procGetModuleHandleW.Addr(),
 		1,
