@@ -196,6 +196,26 @@ func WriteProcessMemory(process windows.Handle, address uintptr, buffer unsafe.P
 	return nLength, nil
 }
 
+func VirtualProtectEx(process windows.Handle, address uintptr, size uint32, newProtect uint32, oldProtect *uint32) error {
+	r0, _, e1 := syscall.Syscall6(procVirtualProtectEx.Addr(),
+		5,
+		uintptr(process),
+		address,
+		uintptr(size),
+		uintptr(newProtect),
+		uintptr(unsafe.Pointer(oldProtect)),
+		0)
+
+	if r0 == 0 {
+		if e1 != 0 {
+			return errnoErr(e1)
+		}
+		return syscall.EINVAL
+	}
+
+	return nil
+}
+
 func CreateRemoteThread(process windows.Handle, sa *windows.SecurityAttributes, stackSize uint32, startAddress uintptr, parameter uintptr, creationFlags uint32) (windows.Handle, uint32, error) {
 	var threadID uint32
 	r0, _, e1 := syscall.Syscall9(procCreateRemoteThread.Addr(),

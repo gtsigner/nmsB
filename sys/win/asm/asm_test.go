@@ -2,9 +2,9 @@ package asm
 
 import (
 	"log"
-	"time"
 	"reflect"
 	"testing"
+	"time"
 )
 
 func Neg(x uint64) int64
@@ -21,9 +21,19 @@ func TestASMNeg(t *testing.T) {
 }
 
 func TestASMNop(t *testing.T) {
+	Foo()
 	ptr := reflect.ValueOf(Foo).Pointer()
 	log.Printf("foo: 0x%X", ptr)
 
-	
-	time.Sleep(time.Minute*5)
+	err := Nop(ptr)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = Return(ptr + uintptr(1))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	time.Sleep(time.Minute * 5)
 }
