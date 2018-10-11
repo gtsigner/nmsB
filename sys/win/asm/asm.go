@@ -1,6 +1,9 @@
 package asm
 
 import (
+	"bytes"
+	"encoding/binary"
+	"log"
 	"unsafe"
 
 	"../api"
@@ -12,6 +15,7 @@ const (
 	NOP_VALUE    = byte(0x90)
 	RETURN_VALUE = byte(0xC3)
 	CALL_VALUE   = byte(0xE8)
+	JUMP_VALUE   = byte(0xE9)
 )
 
 func writeProtection(process windows.Handle, address uintptr, size uint32) (uint32, error) {
@@ -66,5 +70,41 @@ func Return(address uintptr) error {
 }
 
 func Call(address uintptr, funcPtr uintptr) error {
-	return nil
+
+	buf := new(bytes.Buffer)
+	err := binary.Write(buf, binary.BigEndian, uint64(funcPtr))
+	if err != nil {
+		return err
+	}
+
+	b := append([]byte{byte(0xFF)}, buf.Bytes()...)
+	err = writeBytes(address, b)
+
+	return err
+}
+
+func MovEAX(address uintptr, value uint64) (int, error) {
+	buf := new(bytes.Buffer)
+	err := binary.Write(buf, binary.BigEndian, value)
+	if err != nil {
+		return 0, err
+	}
+
+	b := append([]byte{byte(0x8F), byte(0xC0 | 0)}, buf.Bytes()...)
+	err = writeBytes(address, b)
+	return len(b), err
+}
+
+func Jump(address uintptr, jmpPtr uintptr) error {
+	buf := new(bytes.Buffer)
+	size := unsafe.Sizeof(jmpPtr)
+	log.Println(size)
+	err := binary.Write(buf, binary.BigEndian, uint64(jmpPtr))
+	if err != nil {
+		return err
+	}
+
+	b := append([]byte{byte(0xFF), byte(0x25)}, buf.Bytes()...)
+	err = writeBytes(address, b)
+	return err
 }
